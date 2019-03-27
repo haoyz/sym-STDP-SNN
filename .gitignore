@@ -1,0 +1,19 @@
+# generated
+*.o
+*_CODE
+generateALL*
+sm_version.mk
+genn/genn_addrs.h
+train
+test
+network_output
+svm.model
+
+# user
+.vscode
+*ubyte*
+*.txt
+no-*
+weights
+output*
+dataset
