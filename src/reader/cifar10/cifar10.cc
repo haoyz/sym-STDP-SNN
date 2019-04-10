@@ -50,13 +50,13 @@ void read_cifar10_batch(ifstream &file, bool grayscale, vector<vector<float>> &i
   unsigned char label;
   unsigned char image = 0;
   vector<float> tp_gray;
+  vector<float> tp;
   float R, G, B;
 
   for (int i = 0; i < number_of_images; i++)
   {
     file.read((char *)&label, sizeof(label));
     labels.push_back((float)label);
-    vector<float> tp;
     for (int ch = 0; ch < n_channel; ch++)
     {
       for (int r = 0; r < n_rows; r++)

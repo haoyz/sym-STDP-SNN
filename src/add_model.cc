@@ -3,8 +3,7 @@
 int addMyInputNeuronModel(vector<neuronModel> &nModels)
 {
     neuronModel n;
-    unsigned int myPOISSONNEURON; //!< variable attaching the name "myPOISSONNEURON"
-    // Poisson neurons
+    unsigned int myPOISSONNEURON;
     n.varNames.clear();
     n.varTypes.clear();
     n.varNames.push_back("V");
@@ -36,7 +35,7 @@ int addMyInputNeuronModel(vector<neuronModel> &nModels)
     }
     else
     {
-        // if ($(t) - $(spikeTime) > ($(trefract))) {    // revised at 2018-03-27
+        // if ($(t) - $(spikeTime) > ($(trefract))) {    
             MYRAND($(seed),theRnd);
             if (theRnd < *($(rates)+$(offset)+$(id))){
                 $(V)= $(Vspike);
@@ -71,7 +70,7 @@ int addMyNeuronModel_LIF_exc(vector<neuronModel> &nModels)
     n.varTypes.push_back("scalar");
     n.varNames.push_back("trace");
     n.varTypes.push_back("scalar");
-    n.varNames.push_back("testDataEvaluateMode");  // 是否学习？不学习时使用测试集评估//revised at 2018-4-6
+    n.varNames.push_back("testDataEvaluateMode"); // 是否学习？不学习时使用测试集评估
     n.varTypes.push_back("bool");
     n.pNames.clear();
     //n.pNames.push_back("Vspike");
@@ -94,13 +93,13 @@ int addMyNeuronModel_LIF_exc(vector<neuronModel> &nModels)
     //test_mode条件指定阈值是否活动。是实时变量，可以写在这里
     //DT是多少毫秒？python程序里用timer控制不应期内不能有发放。导数100,这里呢？？？会不会有25的影响？？？
     n.simCode = R"(
-    if($(timer)>$(refrac_e)) //不应期内电压不变化，电导呢？! %revised at 2017-10-12
+    if($(timer)>$(refrac_e)) //不应期内电压不变化，电导呢？! 
     {
         $(V)+=( $(v_rest_e) - $(V) + $(Isyn) ) / $(tau_e) *DT; //at two times for numerical stability
     }
     if($(V)<-100)//为了防止抑制低于-100时突然反向发放
     $(V)=-100;
-    if($(test_mode)||$(testDataEvaluateMode)) //revised at 2018-4-6
+    if($(test_mode)||$(testDataEvaluateMode)) 
     {
        $(theta) += 0*DT;
     }
@@ -112,12 +111,12 @@ int addMyNeuronModel_LIF_exc(vector<neuronModel> &nModels)
     }
     $(timer)+= 1*DT;
     // $(timer)+= 1*DT;
-    )"; //这里不乘任何数因为应该与refrac_e正常比较！
+    )";                                                                                                     //这里不乘任何数因为应该与refrac_e正常比较！
     n.thresholdConditionCode = "($(V)>($(theta) - $(offset_e) + $(v_thresh_e))) && ($(timer)>$(refrac_e))"; //不应期可以把电位强制到静息电位！！！查找下不应期brian怎么处理的？
     // n.thresholdConditionCode = "($(V)>($(theta) - $(offset_e) + $(v_thresh_e))) && (100*$(timer)>$(refrac_e))"; //不应期可以把电位强制到静息电位！！！查找下不应期brian怎么处理的？
     n.resetCode = R"(
     //reset code is here
-    if($(test_mode)||$(testDataEvaluateMode)) //revised at 2018-4-6
+    if($(test_mode)||$(testDataEvaluateMode)) 
     {
        $(V) = $(v_reset_e); $(timer) = 0;
      }
@@ -142,7 +141,7 @@ int addMyNeuronModel_LIF_inh(vector<neuronModel> &nModels)
     n.varTypes.push_back("scalar");
     n.pNames.clear();
     //n.pNames.push_back("Vspike");
-      n.pNames.push_back("tau_i");
+    n.pNames.push_back("tau_i");
     n.pNames.push_back("v_rest_i");   // 抑制神经元静息电位.mV
     n.pNames.push_back("v_reset_i");  // （不是直接使用还有其余运算）抑制神经元复位电位.mV
     n.pNames.push_back("v_thresh_i"); // 抑制神经元复位电位.mV
@@ -192,7 +191,7 @@ int addMyNeuronModel_LIF_cla(vector<neuronModel> &nModels)
     n.varTypes.push_back("uint64_t");
     n.varNames.push_back("spikeTime");
     n.varTypes.push_back("scalar");
-    n.varNames.push_back("testDataEvaluateMode");  // 是否学习？不学习时使用测试集评估//revised at 2018-4-6
+    n.varNames.push_back("testDataEvaluateMode"); // 是否学习？不学习时使用测试集评估
     n.varTypes.push_back("bool");
     n.pNames.clear();
     n.pNames.push_back("tau_i");
@@ -212,7 +211,7 @@ int addMyNeuronModel_LIF_cla(vector<neuronModel> &nModels)
     n.extraGlobalNeuronKernelParameterTypes.push_back("uint64_t *");
     //TODO: replace the resetting in the following with BRIAN-like threshold and resetting
     n.simCode = R"(
-    if($(test_mode)||$(testDataEvaluateMode)) //revised at 2018-4-6
+    if($(test_mode)||$(testDataEvaluateMode)) 
     {
         $(V)+=( $(v_rest_i) - $(V) + $(Isyn) ) / $(tau_i) *DT;
     }
@@ -225,7 +224,7 @@ int addMyNeuronModel_LIF_cla(vector<neuronModel> &nModels)
         else
         {
             //uint64_t theRnd;//原poisson模型不能连续发放，350ms，只相当于175ms？？？
-            // if ($(t) - $(spikeTime) > ($(trefract)))  //revised at 2018-04-26
+            // if ($(t) - $(spikeTime) > ($(trefract)))  
             // {
                 MYRAND($(seed),$(theRnd));
                 if ($(theRnd) < *($(rates)+$(id)))
@@ -240,10 +239,10 @@ int addMyNeuronModel_LIF_cla(vector<neuronModel> &nModels)
     }
     )";
     n.thresholdConditionCode = R"(    
-    ($(test_mode)||$(testDataEvaluateMode))&&$(V)> $(v_thresh_i)||(!($(test_mode)||$(testDataEvaluateMode)))&&$(V) >= $(Vspike)//revised at 2018-4-6
+    ($(test_mode)||$(testDataEvaluateMode))&&$(V)> $(v_thresh_i)||(!($(test_mode)||$(testDataEvaluateMode)))&&$(V) >= $(Vspike)
     )";
     n.resetCode = R"(//reset code is here
-    if($(test_mode)||$(testDataEvaluateMode))//revised at 2018-4-6
+    if($(test_mode)||$(testDataEvaluateMode))
         $(V) = $(v_reset_i);
      )";
     nModels.push_back(n);
@@ -259,7 +258,7 @@ int addMySynapseModel(vector<weightUpdateModel> &weightUpdateModels)
     wuSTDP.varTypes.clear();
     wuSTDP.varNames.push_back("g"); //0
     wuSTDP.varTypes.push_back("scalar");
-    wuSTDP.varNames.push_back("testDataEvaluateMode");  // 是否学习？不学习时使用测试集评估//revised at 2018-4-6
+    wuSTDP.varNames.push_back("testDataEvaluateMode"); // 是否学习？不学习时使用测试集评估
     wuSTDP.varTypes.push_back("bool");
     // wuSTDP.varNames.push_back("post2before"); //4//提升性能降低理论性
     // wuSTDP.varTypes.push_back("scalar");
@@ -271,7 +270,7 @@ int addMySynapseModel(vector<weightUpdateModel> &weightUpdateModels)
     // wuSTDP.synapseDynamics = R"()";
     // code for presynaptic spike
     wuSTDP.simCode = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6
+    if($(testDataEvaluateMode))
     {
         $(addtoinSyn) = $(g);
         $(updatelinsyn);
@@ -292,7 +291,7 @@ int addMySynapseModel(vector<weightUpdateModel> &weightUpdateModels)
     wuSTDP.dps = new pwSTDP; //？？？？？？？？？？？？？？？？？？
     // code for post-synaptic spike
     wuSTDP.simLearnPost = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6   
+    if($(testDataEvaluateMode))   
     {
         
     }
@@ -323,7 +322,7 @@ int addMySynapseModel_mySTDP_DA(vector<weightUpdateModel> &weightUpdateModels)
     wuSTDP.varTypes.clear();
     wuSTDP.varNames.push_back("g"); //0
     wuSTDP.varTypes.push_back("scalar");
-    wuSTDP.varNames.push_back("testDataEvaluateMode");  // 是否学习？不学习时使用测试集评估//revised at 2018-4-6
+    wuSTDP.varNames.push_back("testDataEvaluateMode"); // 是否学习？不学习时使用测试集评估
     wuSTDP.varTypes.push_back("bool");
     wuSTDP.pNames.clear();
     wuSTDP.pNames.push_back("nu_ee_pre");  //0
@@ -335,7 +334,7 @@ int addMySynapseModel_mySTDP_DA(vector<weightUpdateModel> &weightUpdateModels)
     // wuSTDP.synapseDynamics = R"()";
     // code for presynaptic spike
     wuSTDP.simCode = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6
+    if($(testDataEvaluateMode))
     {
         $(addtoinSyn) = $(g);
         $(updatelinsyn);
@@ -353,7 +352,7 @@ int addMySynapseModel_mySTDP_DA(vector<weightUpdateModel> &weightUpdateModels)
     wuSTDP.dps = new pwSTDP; //？？？？？？？？？？？？？？？？？？
     // code for post-synaptic spike
     wuSTDP.simLearnPost = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6   
+    if($(testDataEvaluateMode))   
     {
         
     }
@@ -383,7 +382,7 @@ int addMySynapseModel_mySTDP_symmetric(vector<weightUpdateModel> &weightUpdateMo
     wuSTDP.varTypes.clear();
     wuSTDP.varNames.push_back("g"); //0
     wuSTDP.varTypes.push_back("scalar");
-    wuSTDP.varNames.push_back("testDataEvaluateMode");  // 是否学习？不学习时使用测试集评估//revised at 2018-4-6
+    wuSTDP.varNames.push_back("testDataEvaluateMode"); // 是否学习？不学习时使用测试集评估
     wuSTDP.varTypes.push_back("bool");
     wuSTDP.pNames.clear();
     wuSTDP.pNames.push_back("nu_ee_pre");  //0
@@ -395,7 +394,7 @@ int addMySynapseModel_mySTDP_symmetric(vector<weightUpdateModel> &weightUpdateMo
     // wuSTDP.synapseDynamics = R"()";
     // code for presynaptic spike
     wuSTDP.simCode = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6
+    if($(testDataEvaluateMode))
     {
         $(addtoinSyn) = $(g);
         $(updatelinsyn);
@@ -413,7 +412,7 @@ int addMySynapseModel_mySTDP_symmetric(vector<weightUpdateModel> &weightUpdateMo
     wuSTDP.dps = new pwSTDP; //？？？？？？？？？？？？？？？？？？
     // code for post-synaptic spike
     wuSTDP.simLearnPost = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6   
+    if($(testDataEvaluateMode))   
     {
         
     }
@@ -443,7 +442,7 @@ int addMySynapseModel_soft_bounds(vector<weightUpdateModel> &weightUpdateModels)
     wuSTDP.varTypes.clear();
     wuSTDP.varNames.push_back("g"); //0
     wuSTDP.varTypes.push_back("scalar");
-    wuSTDP.varNames.push_back("testDataEvaluateMode");  // 是否学习？不学习时使用测试集评估//revised at 2018-4-6
+    wuSTDP.varNames.push_back("testDataEvaluateMode"); // 是否学习？不学习时使用测试集评估
     wuSTDP.varTypes.push_back("bool");
     wuSTDP.pNames.clear();
     wuSTDP.pNames.push_back("nu_ee_pre");  //0
@@ -455,7 +454,7 @@ int addMySynapseModel_soft_bounds(vector<weightUpdateModel> &weightUpdateModels)
     // wuSTDP.synapseDynamics = R"()";
     // code for presynaptic spike
     wuSTDP.simCode = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6
+    if($(testDataEvaluateMode))
     {
         $(addtoinSyn) = $(g);
         $(updatelinsyn);
@@ -475,7 +474,7 @@ int addMySynapseModel_soft_bounds(vector<weightUpdateModel> &weightUpdateModels)
     //$(post2before) = $(post2); //提升性能降低理论性
     //$(g) += $(nu_ee_post) * $(pre) * $(post2before);
     wuSTDP.simLearnPost = R"(
-    if($(testDataEvaluateMode))//revised at 2018-4-6   
+    if($(testDataEvaluateMode))   
     {
         
     }

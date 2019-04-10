@@ -20,8 +20,8 @@ void read_mnist_label(string filename, vector<float> &labels)
     file.read((char *)&number_of_images, sizeof(number_of_images));
     magic_number = ReverseInt(magic_number);
     number_of_images = ReverseInt(number_of_images);
-    cout << "magic number = " << magic_number << endl;
-    cout << "number of images = " << number_of_images << endl;
+    // cout << "magic number = " << magic_number << endl;
+    // cout << "number of images = " << number_of_images << endl;
 
     for (int i = 0; i < number_of_images; i++)
     {
@@ -57,10 +57,10 @@ void read_mnist_images(string filename, vector<vector<float>> &images)
     n_rows = ReverseInt(n_rows);
     n_cols = ReverseInt(n_cols);
 
-    cout << "magic number = " << magic_number << endl;
-    cout << "number of images = " << number_of_images << endl;
-    cout << "rows = " << n_rows << endl;
-    cout << "cols = " << n_cols << endl;
+    // cout << "magic number = " << magic_number << endl;
+    // cout << "number of images = " << number_of_images << endl;
+    // cout << "rows = " << n_rows << endl;
+    // cout << "cols = " << n_cols << endl;
 
     for (int i = 0; i < number_of_images; i++)
     {

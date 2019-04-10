@@ -1,5 +1,4 @@
 #include "model.h"
-// #include "add_model.h"
 #include "add_model.cc"
 //------------------------------------------------------------------------------
 // POISON model P
@@ -44,7 +43,7 @@ double ini_exc[] = {
     trace1,
     trace2,
     exc_trace,
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    testDataEvaluateModeInit,
 };
 double p_inh[] = {
     tau_i,
@@ -78,10 +77,10 @@ double ini_cla[] = {
     cla_v, // 0 - membrane potential V
     trace1,
     trace2,
-    cla_seed,                 //1100000, // 1 - seed
-    cla_theRand,              // 2 - theRand
-    cla_SpikeTime,            // 3 - SpikeTime 克服不应期，保证t=0时就可以spike
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    cla_seed,      //1100000, // 1 - seed
+    cla_theRand,   // 2 - theRand
+    cla_SpikeTime, // 3 - SpikeTime 克服不应期，保证t=0时就可以spike
+    testDataEvaluateModeInit,
 };
 //------------------------------------------------------------------------------
 // postSynV
@@ -109,8 +108,8 @@ double *postSynV = NULL;
 // mySTDP P——>E  E——>E  E——>C
 //------------------------------------------------------------------------------
 double mySTDP_ini_PE[] = {
-    stdp_g,                   //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_p_PE[] = {
     stdp_nu_ee_pre,  //0.01   //0.0001, //("nu_ee_pre");  //0
@@ -119,8 +118,8 @@ double mySTDP_p_PE[] = {
     stdp_g_max_PE,   //g_max  //6
 };
 double mySTDP_ini_EC[] = {
-    stdp_g,                   //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_p_EC[] = {
     stdp_nu_ee_pre,  //0.01   //0.0001, //("nu_ee_pre");  //0
@@ -132,8 +131,8 @@ double mySTDP_p_EC[] = {
 // mySTDP_DA P——>E  E——>E  E——>C
 //------------------------------------------------------------------------------
 double mySTDP_DA_ini_PE[] = {
-    stdp_sym_g,               //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_sym_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_DA_p_PE[] = {
     stdp_sym_nu_ee_pre,  //0.01   //0.0001, //("nu_ee_pre");  //0
@@ -144,8 +143,8 @@ double mySTDP_DA_p_PE[] = {
     stdp_sym_a_minus,    //("a_minus");
 };
 double mySTDP_DA_ini_EC[] = {
-    stdp_sym_g,               //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_sym_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_DA_p_EC[] = {
     stdp_sym_nu_ee_pre,  //0.01   //0.0001, //("nu_ee_pre");  //0
@@ -159,8 +158,8 @@ double mySTDP_DA_p_EC[] = {
 // mySTDP_symmetric P——>E  E——>E  E——>C
 //------------------------------------------------------------------------------
 double mySTDP_symmetric_ini_PE[] = {
-    stdp_sym_g,               //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_sym_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_symmetric_p_PE[] = {
     stdp_sym_nu_ee_pre,  //0.01   //0.0001, //("nu_ee_pre");  //0
@@ -171,23 +170,23 @@ double mySTDP_symmetric_p_PE[] = {
     stdp_sym_a_minus,    //("a_minus");
 };
 double mySTDP_symmetric_ini_EC[] = {
-    stdp_sym_g,               //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_sym_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_symmetric_p_EC[] = {
-    stdp_DA_nu_ee_pre,  //revised at 2018-05-12
-    stdp_DA_nu_ee_post, //revised at 2018-05-12
-    stdp_sym_g_min,     //g_min //5
-    stdp_sym_g_max_EC,  //g_max  //6
-    stdp_DA_a_plus,     //revised at 2018-05-12
-    stdp_DA_a_minus,    //revised at 2018-05-12
+    stdp_DA_nu_ee_pre,
+    stdp_DA_nu_ee_post,
+    stdp_sym_g_min,    //g_min //5
+    stdp_sym_g_max_EC, //g_max  //6
+    stdp_DA_a_plus,
+    stdp_DA_a_minus,
 };
 //------------------------------------------------------------------------------
 // P——>E mySTDP_soft_bounds
 //------------------------------------------------------------------------------
 double mySTDP_soft_bounds_ini[] = {
-    stdp_soft_g,              //0.01, // ("g");//0
-    testDataEvaluateModeInit, //revised at 2018-4-6
+    stdp_soft_g, //0.01, // ("g");//0
+    testDataEvaluateModeInit,
 };
 double mySTDP_soft_bounds_p_PE[] = {
     stdp_soft_nu_ee_pre,  //0.01   //0.0001, //("nu_ee_pre");  //0
@@ -216,8 +215,8 @@ double NSYNAPSE_ini_IE[1] = {
 };
 double *NSYNAPSE_p_IE = NULL;
 
-size_t size_gP2E = _NPoi * _NExc;
-size_t size_gE2C = _NExc * _NCla;
+size_t size_gP2E = NPoi * NExc;
+size_t size_gE2C = NExc * NCla;
 
 void get_rand_g(float *p, long int n, int g_max) //函数功能为产生n个N_rand内的随机数，存储于数组*ratesPop1中。
 {
@@ -230,16 +229,15 @@ void get_rand_g(float *p, long int n, int g_max) //函数功能为产生n个N_ra
                                           //for(i = 0; i < n; i ++)
                                           //MYRAND(myrand,p[i]);
 }
-void get_rand(float *p, long int n, int max)
+void get_rand(uint64_t *p, long int n, int max)
 {
     long int i;
     srand((unsigned)time(NULL));
     for (i = 0; i < n; i++)
-        p[i] = rand() % (max); //返回的是秒数，不能在短时间内多次调用该函数来获得随机数列，应该一次性获得所有随机数列
+        p[i] = (uint64_t)(rand() % (max)); //返回的是秒数，不能在短时间内多次调用该函数来获得随机数列，应该一次性获得所有随机数列
 }
 void modelDefinition(NNmodel &model)
 {
-    // definition of Model
     initGeNN();
 
 #ifdef DEBUG
@@ -265,17 +263,17 @@ void modelDefinition(NNmodel &model)
     model.setPrecision(_FTYPE);
     model.setName("model");
     //model.setSeed(1234);//extraGlobalNeuronKernelParameters有两个参数rates和offset但是不知道怎么搞？（get）
-    model.addNeuronPopulation("PPoi", _NPoi, myPOISSONNEURON, myPOI_p, myPOI_ini);
+    model.addNeuronPopulation("PPoi", NPoi, myPOISSONNEURON, myPOI_p, myPOI_ini);
 
-#ifndef _gPE_read_from_file
-    model.addNeuronPopulation("PExc", _NExc, LIF_exc, p_exc, ini_exc);
+#ifndef READ_gPE_FROM_FILE
+    model.addNeuronPopulation("PExc", NExc, LIF_exc, p_exc, ini_exc);
 #else
-    model.addNeuronPopulation("PExc", _NExc, LIF_exc_no_learnning, p_exc, ini_exc);
+    model.addNeuronPopulation("PExc", NExc, LIF_exc_no_learnning, p_exc, ini_exc);
 #endif
-    model.addNeuronPopulation("PInh", _NInh, LIF_inh, p_inh, ini_inh); //GLOBALG
-    model.addNeuronPopulation("PCla", _NCla, LIF_cla, p_cla, ini_cla); //inh与poi 的结合体
+    model.addNeuronPopulation("PInh", NInh, LIF_inh, p_inh, ini_inh); //GLOBALG
+    model.addNeuronPopulation("PCla", NCla, LIF_cla, p_cla, ini_cla); 
 #ifndef test_mode
-#ifndef _gPE_read_from_file
+#ifndef READ_gPE_FROM_FILE
         // model.addSynapsePopulation("P2E", mySTDP, DENSE, INDIVIDUALG, NO_DELAY /*5*/, EXPDECAY, "PPoi", "PExc", mySTDP_ini_PE, mySTDP_p_PE, postSynV, postExpP2E); //是否要加delay？
     model.addSynapsePopulation("P2E", mySTDP_DA, DENSE, INDIVIDUALG, NO_DELAY /*5*/, EXPDECAY, "PPoi", "PExc", mySTDP_symmetric_ini_PE, mySTDP_symmetric_p_PE, postSynV, postExpP2E);
 // model.addSynapsePopulation("P2E", mySTDP_symmetric, DENSE, INDIVIDUALG, NO_DELAY /*5*/, EXPDECAY, "PPoi", "PExc", mySTDP_symmetric_ini_PE, mySTDP_symmetric_p_PE, postSynV, postExpP2E);

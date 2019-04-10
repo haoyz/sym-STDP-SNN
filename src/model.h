@@ -4,11 +4,11 @@
 #include "modelSpec.h"
 #include "../global.h"
 #include "sparseUtils.h"
+#include "utils.h"
 #include <cstdlib> //不用srand和rand了
 #include <ctime>
 #include <queue>
 #include <iostream>
-#include "utils.h"
 
 //#define DT 0.100000f //
 #define _FTYPE GENN_FLOAT
@@ -26,16 +26,16 @@
 #define poi_SpikeTime -10.0 // 3 - SpikeTime 克服不应期，保证t=0时就可以spike
 #define poi_trace 1
 
-#define _g_max_PE_init 0.3
-#define _g_max_PE_init1000 _g_max_PE_init * 1000
-#define _g_max_EC_init 0.3
-#define _g_max_EC_init1000 _g_max_EC_init * 1000
-#define _g_PE_max 1.0
+#define gPE_INIT_MAX 0.3
+#define gPE_INIT_MAX_1000 gPE_INIT_MAX * 1000
+#define gEC_INIT_MAX 0.3
+#define gEC_INIT_MAX_1000 gEC_INIT_MAX * 1000
+#define gPE_MAX 1.0
 #define _g_EI 10.4                         //*1e-3 //g
 #define _g_IE 17                           //* 0.25  //*1e-3 //g
-#define _g_EC_max 8.0                      // 8.0 * 1.25
-#define _NORMAL 78.0                       // * 1.5
-#define _cla_NORMAL (0.1 * _N * _g_EC_max) // #define _cla_NORMAL (0.1 * _NCla * _g_EC_max) //即电导既不太大也不太小，下一次有充分的空间学习
+#define gEC_MAX 8.0                        // 8.0 * 1.25
+#define _NORMAL 78.4                       // * 1.5
+#define _cla_NORMAL (0.1 * NExc * gEC_MAX) // #define _cla_NORMAL (0.1 * NCla * gEC_MAX) //即电导既不太大也不太小，下一次有充分的空间学习
 
 #define tau_e 100                    //  The time constant of membrane potential of Exc. Neurons
 #define v_rest_e -65.0               // 0 - v_rest_e: Na conductance in muS？？？
@@ -43,8 +43,8 @@
 #define v_thresh_e -52               // 2 - v_thresh_e: leak conductance in muS
 #define refrac_e 2                   // 3 - refrac_e: membr. capacity density in nF
 #define test_mode_e test_mode_neuron // 4 - test_mode: Na equi potential in mV
-#define tc_theta 1e7 * 0.8           //* 2                 // 5 - tc_theta: K conductance in muS
-#define theta_plus_e 0.05 * 1.4      //* 1.5            // 6 - theta_plus_e: K equi potential in mV
+#define tc_theta 1e7 * 0.8             //* 2                 // 5 - tc_theta: K conductance in muS
+#define theta_plus_e 0.05 * 5      //* 1.5            // 6 - theta_plus_e: K equi potential in mV
 #define offset_exc 20.0              // 7 - offset_exc: leak conductance in muS
 #define directInput_e 0.0            // 8 - directInput: 电流单位？？？0.1时vexc只变化了0.0001  10时从69.975变化到69.965认为有效。
 #define tc_trace1 20
@@ -57,7 +57,7 @@
 #define trace1 1
 #define trace2 1
 #define exc_trace 1
-#define testDataEvaluateModeInit false //revised at 2018-4-6
+#define testDataEvaluateModeInit false
 
 #define v_rest_i -60.0               // 0 - v_rest_i: Na equi potential in mV
 #define v_reset_i -45.0              // 1 - v_reset_i: K equi potential in mV
@@ -96,26 +96,26 @@
 
 #define stdp_g 0.1 //0.01, // ("g");//0
 
-#define stdp_nu_ee_pre 0.0001   //("nu_ee_pre");  //0
-#define stdp_nu_ee_post 0.01    //("nu_ee_post"); //1
-#define stdp_g_min 0            //g_min //5
-#define stdp_g_max_PE _g_PE_max //g_max
-#define stdp_g_max_EC _g_EC_max //g_max
+#define stdp_nu_ee_pre 0.0001 //("nu_ee_pre");  //0
+#define stdp_nu_ee_post 0.01  //("nu_ee_post"); //1
+#define stdp_g_min 0          //g_min //5
+#define stdp_g_max_PE gPE_MAX //g_max
+#define stdp_g_max_EC gEC_MAX //g_max
 
 #define stdp_sym_g 0.1 //0.01, // ("g");//0
 
-#define stdp_sym_nu_ee_pre 0.01 * 2  //revised at 2018-05-12
-#define stdp_sym_nu_ee_post 0.01 * 2 //revised at 2018-05-12
-#define stdp_sym_g_min 0             //g_min //5
-#define stdp_sym_g_max_PE _g_PE_max  //g_max  //6
-#define stdp_sym_g_max_EC _g_EC_max  //g_max  //6
-#define stdp_sym_a_plus 0.1          //* 2       //revised at 2018-05-12
-#define stdp_sym_a_minus 0.1         //* 2      //revised at 2018-05-12
+#define stdp_sym_nu_ee_pre 0.01
+#define stdp_sym_nu_ee_post 0.01
+#define stdp_sym_g_min 0          //g_min //5
+#define stdp_sym_g_max_PE gPE_MAX //g_max  //6
+#define stdp_sym_g_max_EC gEC_MAX //g_max  //6
+#define stdp_sym_a_plus 0.1       //* 2
+#define stdp_sym_a_minus 0.1      //* 2
 
-#define stdp_DA_nu_ee_pre 0.01 * 8  //revised at 2018-05-12
-#define stdp_DA_nu_ee_post 0.01 * 8 //revised at 2018-05-12
-#define stdp_DA_a_plus 0.1          //revised at 2018-05-12
-#define stdp_DA_a_minus 0.1         //revised at 2018-05-12
+#define stdp_DA_nu_ee_pre 0.01 * 8
+#define stdp_DA_nu_ee_post 0.01 * 8
+#define stdp_DA_a_plus 0.1
+#define stdp_DA_a_minus 0.1
 
 #define stdp_soft_g 0.1 //0.01, // ("g");//0
 
@@ -143,7 +143,7 @@ extern double ini_inh[];
 //------------------------------------------------------------------------------
 // LIF model Cal
 //------------------------------------------------------------------------------
-extern double p_cal[]; //revised at 2018-4-14
+extern double p_cal[];
 extern double ini_cal[];
 //------------------------------------------------------------------------------
 // postSynV
@@ -179,7 +179,7 @@ extern size_t size_gP2E;
 extern size_t size_gE2C;
 
 void get_rand_g(float *p, long int n, int g_max);
-void get_rand(float *p, long int n, int max);
+void get_rand(uint64_t *p, long int n, int max);
 void modelDefinition(NNmodel &model);
 
 #endif

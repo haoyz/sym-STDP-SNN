@@ -9,8 +9,10 @@ using namespace std;
 #include <iostream>
 #include <queue>
 #include "evaluation.h"
-#include "train.h"
 #include "model.h"
+
+#define UNSUPERVISED 0
+#define SUPERVISED 1
 
 void plot_assignments_distribution_init(GNUplot &tmp_plot);
 void plot_assignments_distribution(GNUplot &tmp_plot);
@@ -35,11 +37,11 @@ void plot_variance_E2C(GNUplot &tmp_plot);
 void plot_variance_E2C_distribution_init(GNUplot &tmp_plot);
 void plot_variance_E2C_distribution(GNUplot &tmp_plot);
 
-void plot_performance_init(GNUplot &tmp_pt, int num_examples); //做好画图的准备。画图的框框，准备performance存储实时的准确率。
-void plot_performance(GNUplot &tmp_pt, int fileName);          //代码重用//revised at 2018-4-14
+void plot_performance_init(GNUplot &tmp_pt, int num_samples); //做好画图的准备。画图的框框，准备performance存储实时的准确率。
+void plot_performance(GNUplot &tmp_pt, int fileName);         //代码重用
 
 void plot_confusion_m_init(GNUplot &tmp_plot);
-void plot_confusion_m(GNUplot &tmp_plot, int flag); // revised at 2018-05-13
+void plot_confusion_m(GNUplot &tmp_plot, int flag);
 
 void plot_spikes_init(GNUplot &tmp_plot);
 void plot_spikes(GNUplot &tmp_plot);
