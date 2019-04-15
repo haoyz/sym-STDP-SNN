@@ -1,2 +1,2 @@
 # sym-stdp-for-sl
-the code of paper A Biologically Plausible Supervised Learning Method for Spiking Neural Networks Using the Symmetric STDP Rule
+Code for the model presented in the paper "A Biologically Plausible Supervised Learning Method for Spiking Neural Networks Using the Symmetric STDP Rule" 

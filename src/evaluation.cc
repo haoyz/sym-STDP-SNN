@@ -11,7 +11,7 @@ void normalize_weights(float *tmp_gP2E)
     tmp_sum = 0; //为了优化不单独归零
     for (int j = 0; j < NPoi; j++)
       tmp_sum += tmp_gP2E[i + j * NExc]; //PE之间归一化权重
-    tmp_factors = _NORMAL / tmp_sum;
+    tmp_factors = NORMAL / tmp_sum;
     for (int j = 0; j < NPoi; j++)
     {
       tmp_gP2E[i + j * NExc] *= tmp_factors; //c+=支持向量乘法么……
@@ -27,7 +27,7 @@ void cla_normalize_weights(float *tmp_gE2C)
     tmp_sum = 0; //为了优化不单独归零
     for (int j = 0; j < NExc; j++)
       tmp_sum += tmp_gE2C[i + j * NCla]; //EC之间归一化权重
-    tmp_factors = _cla_NORMAL / tmp_sum;
+    tmp_factors = Cla_NORMAL / tmp_sum;
     for (int j = 0; j < NExc; j++)
     {
       tmp_gE2C[i + j * NCla] *= tmp_factors; //c+=支持向量乘法么……
@@ -42,7 +42,7 @@ void cla_normalize_weights(float *tmp_gE2C)
 //     tmp_sum = 0; //为了优化不单独归零
 //     for (int j = 0; j < NCla; j++)
 //       tmp_sum += tmp_gE2C[i * NCla + j]; //EC之间归一化权重
-//     tmp_factors = _cla_NORMAL / tmp_sum;
+//     tmp_factors = Cla_NORMAL / tmp_sum;
 //     for (int j = 0; j < NCla; j++)
 //     {
 //       tmp_gE2C[i * NCla + j] *= tmp_factors; //c+=支持向量乘法么……
@@ -175,7 +175,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
   int num_assignments[10] = {0};
   float rate_sum[NExc][10] = {0};
   float maximum_rate = 0;
-  for (int i = 0; i < _LABELS_CONST; i++)
+  for (int i = 0; i < LABELS_CONST; i++)
   {
     for (int j = 0; j < 10; j++) //测试集中每个数字各有多少个。十维
     {
@@ -186,7 +186,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
       }
     }
   }
-  for (int i = 0; i < _LABELS_CONST; i++)
+  for (int i = 0; i < LABELS_CONST; i++)
   {
     for (int k = 0; k < 10; k++)
     {
@@ -200,8 +200,8 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
       }
     }
   }
-  // cout << "测试集" << _LABELS_CONST << "*" << NExc << "矩阵:" << endl;
-  // for (int i = 0; i < _LABELS_CONST; i++)
+  // cout << "测试集" << LABELS_CONST << "*" << NExc << "矩阵:" << endl;
+  // for (int i = 0; i < LABELS_CONST; i++)
   // {
   //   for (int j = 0; j < NExc; j++)
   //   {
@@ -272,11 +272,11 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //   {
 //     max = 0;
 //     sum = 0;
-//     for (int i = 0; i < _LABELS_CONST; i++)
+//     for (int i = 0; i < LABELS_CONST; i++)
 //     {
 //       sum += result_monitor[i][j];
 //     }
-//     for (int i = 0; i < _LABELS_CONST; i++)
+//     for (int i = 0; i < LABELS_CONST; i++)
 //     {
 //       if (result_monitor[i][j] > max)
 //       {
@@ -285,7 +285,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //     max = 0;
-//     for (int i = 0; i < _LABELS_CONST; i++)
+//     for (int i = 0; i < LABELS_CONST; i++)
 //     {
 //       if (result_monitor[i][j] > max && rate_sum[j][0] != i)
 //       {
@@ -294,7 +294,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //     max = 0;
-//     for (int i = 0; i < _LABELS_CONST; i++)
+//     for (int i = 0; i < LABELS_CONST; i++)
 //     {
 //       if (result_monitor[i][j] > max && rate_sum[j][0] != i && rate_sum[j][1] != i)
 //       {
@@ -303,7 +303,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //     max = 0;
-//     for (int i = 0; i < _LABELS_CONST; i++)
+//     for (int i = 0; i < LABELS_CONST; i++)
 //     {
 //       if (result_monitor[i][j] > max && rate_sum[j][0] != i && rate_sum[j][1] != i && rate_sum[j][2] != i)
 //       {
@@ -356,7 +356,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //   int assignments3[NExc] = {0};
 //   float sum = 0;
 //   int tmp, tmp2, tmp3;
-//   for (int i = 0; i < _LABELS_CONST; i++)
+//   for (int i = 0; i < LABELS_CONST; i++)
 //   {
 //     for (int j = 0; j < 10; j++) //测试集中每个数字各有多少个。十维
 //     {
@@ -367,7 +367,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //   }
-//   for (int i = 0; i < _LABELS_CONST; i++)
+//   for (int i = 0; i < LABELS_CONST; i++)
 //   {
 //     for (int k = 0; k < 10; k++)
 //     {
@@ -541,9 +541,9 @@ void write_visual_PEw_to_file(vector<vector<float>> tmp_visual)
 }
 void get_visual_ECw(vector<vector<float>> &tmp_visual)
 {
-  for (int i = 0; i < _ECw_X; i++)
+  for (int i = 0; i < ECw_X; i++)
   {
-    for (int j = 0; j < _ECw_Y; j++)
+    for (int j = 0; j < ECw_Y; j++)
     {
       tmp_visual[i][j] = gE2C[i * NCla + j];
     }
@@ -556,9 +556,9 @@ void write_visual_ECw_to_file(vector<vector<float>> tmp_visual)
   // ------------------------------------------------------------------------------
   char const *file_name = "./output/plot_visual_ECw_bin.dat"; //file_name make valgrind happy but fuck not!!!
   ofstream tmp_plot_file(file_name, ios::binary | ios::trunc);
-  for (int i = 0; i < _ECw_X; i++)
+  for (int i = 0; i < ECw_X; i++)
   {
-    for (int j = 0; j < _ECw_Y; j++)
+    for (int j = 0; j < ECw_Y; j++)
     {
       tmp_plot_file.write((char *)&tmp_visual[i][j], sizeof(float)); //float make valgrind happy but tmp_visual can't but fuck not!!!
     }
@@ -567,9 +567,9 @@ void write_visual_ECw_to_file(vector<vector<float>> tmp_visual)
 }
 void get_visual_ECw_inferred(vector<vector<float>> &tmp_visual, vector<int> assignments)
 {
-  for (int i = 0; i < _ECw_X; i++)
+  for (int i = 0; i < ECw_X; i++)
   {
-    for (int j = 0; j < _ECw_Y; j++)
+    for (int j = 0; j < ECw_Y; j++)
     {
       if (assignments[i] == j)
         tmp_visual[i][j] = 1;
@@ -585,9 +585,9 @@ void write_visual_ECw_inferred_to_file(vector<vector<float>> tmp_visual)
   // ------------------------------------------------------------------------------
   char const *file_name = "./output/plot_visual_ECw_inferred_bin.dat"; //file_name make valgrind happy but fuck not!!!
   ofstream tmp_plot_file(file_name, ios::binary | ios::trunc);
-  for (int i = 0; i < _ECw_X; i++)
+  for (int i = 0; i < ECw_X; i++)
   {
-    for (int j = 0; j < _ECw_Y; j++)
+    for (int j = 0; j < ECw_Y; j++)
     {
       tmp_plot_file.write((char *)&tmp_visual[i][j], sizeof(float)); //float make valgrind happy but tmp_visual can't but fuck not!!!
     }
@@ -596,7 +596,7 @@ void write_visual_ECw_inferred_to_file(vector<vector<float>> tmp_visual)
 }
 void get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval)
 {
-  int test_results[_LABELS_CONST] = {-1};
+  int test_results[LABELS_CONST] = {-1};
   int difference = 0;
   int correct = 0;
   char const *file_name = "./output/error_ID.dat";
@@ -659,7 +659,7 @@ void write_performance_to_file(vector<float> tmp_performance1, vector<float> tmp
 
 void cla_get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> cla_result_monitor, vector<float> labels, int update_interval)
 {
-  int test_results[_LABELS_CONST] = {-1};
+  int test_results[LABELS_CONST] = {-1};
   int difference = 0;
   int correct = 0;
   for (int i = 0; i < update_interval; i++) //计算assignments
@@ -696,7 +696,7 @@ void write_spike_rate_to_file(float spike_rate[3])
 }
 void get_confusion_m(vector<vector<float>> &confusion_m, int offset, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval)
 {
-  int test_results[_LABELS_CONST] = {-1};
+  int test_results[LABELS_CONST] = {-1};
   int x_i, y_j;
   confusion_m.assign(11, vector<float>(11, 0));
   for (int i = 0; i < update_interval; i++) //计算assignments
@@ -712,7 +712,7 @@ void get_confusion_m(vector<vector<float>> &confusion_m, int offset, vector<vect
 }
 void get_confusion_m_supervised(vector<vector<float>> &confusion_m, int offset, vector<vector<int>> cla_result_monitor, vector<float> labels, int update_interval)
 {
-  int test_results[_LABELS_CONST] = {-1};
+  int test_results[LABELS_CONST] = {-1};
   int x_i, y_j;
   confusion_m.assign(11, vector<float>(11, 0));
   for (int i = 0; i < update_interval; i++)
@@ -886,7 +886,7 @@ void write_vector_to_file(vector<int> data, int num, string filename)
 }
 void write_result_monitor_to_file(int tmp_result_monitor[NExc], int tmp_label)
 {
-#ifdef svm_train
+#ifdef SVM_TRAIN
   char const *file_name = "./output/svm_train.dat";
 #else
   char const *file_name = "./output/svm_test.dat";
@@ -905,7 +905,7 @@ void write_result_monitor_to_file(int tmp_result_monitor[NExc], int tmp_label)
   }
   else
   {
-#ifdef svm_train
+#ifdef SVM_TRAIN
     cout << "error! Can't open ./output/svm_train.dat!" << endl;
 #else
     cout << "error! Can't open ./output/svm_test.dat!" << endl;

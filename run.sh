@@ -29,9 +29,9 @@ echo -e "${GREEN}Running...${NC}"
 # # echo -e "${GREEN}Running...${NC}"
 # # ./train
 
-# # # test_mode: label and SL and SVM for 10000 testing samples
+# # # TEST_MODE: label and SL and SVM for 10000 testing samples
 
-# # sed -i "s/#define svm_train/\/\/ #define svm_train/" global.h
+# # sed -i "s/#define SVM_TRAIN/\/\/ #define SVM_TRAIN/" global.h
 
 # echo -e "${GREEN}Cleaning...${NC}"
 # ./rm.sh
@@ -47,4 +47,4 @@ echo -e "${GREEN}Running...${NC}"
 
 # # # svm-train -t 0 ./output/svm_train.dat svm.model
 # # # svm-predict ./output/svm_test.dat svm.model /dev/null
-# # # sed -i "s/\/\/ #define svm_train/#define svm_train/" global.h
+# # # sed -i "s/\/\/ #define SVM_TRAIN/#define SVM_TRAIN/" global.h
