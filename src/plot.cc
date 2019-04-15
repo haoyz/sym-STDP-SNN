@@ -75,7 +75,7 @@ void plot_visual_ECw(GNUplot &tmp_plotter)
   static int tmp_id = 0; //   1 -> 0 due to new Estimation in train.cc:
   char plot_image[150];  //for no longer "line 0: undefined variable: NExc_Sqrt"
   sprintf(plot_image, "plot \"./output/plot_visual_ECw_bin.dat\" binary array=(%d,%d) endian=little format=\"%%float\" with image",
-          _ECw_X, _ECw_Y); //否则会出现图片文件全部是0字节的错误
+          ECw_X, ECw_Y); //否则会出现图片文件全部是0字节的错误
   cout << "plot_visual_ECw" << endl;
   if (NExc <= 400)
     tmp_plotter("set terminal png"); //wxt指屏幕，term是terminal缩写
@@ -109,7 +109,7 @@ void plot_visual_ECw_inferred(GNUplot &tmp_plotter)
   static int tmp_id = 0; //   1 -> 0 due to new Estimation in train.cc:
   char plot_image[150];  //for no longer "line 0: undefined variable: NExc_Sqrt"
   sprintf(plot_image, "plot \"./output/plot_visual_ECw_inferred_bin.dat\" binary array=(%d,%d) endian=little format=\"%%float\" with image",
-          _ECw_X, _ECw_Y); //否则会出现图片文件全部是0字节的错误
+          ECw_X, ECw_Y); //否则会出现图片文件全部是0字节的错误
   cout << "plot_visual_ECw_inferred" << endl;
   if (NExc <= 400)
     tmp_plotter("set terminal png"); //wxt指屏幕，term是terminal缩写

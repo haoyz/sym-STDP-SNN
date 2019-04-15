@@ -7,8 +7,7 @@
 #include <vector>
 using namespace std;
 
-#define DT 0.500000f
-#define N_rand 256 //精度。
+#define N_rand 256 //精度
 
 #define preN_EI NExc
 #define postN_EI NInh
@@ -18,7 +17,7 @@ using namespace std;
 #define connN_I2E NInh *(NExc - 1) //一对多
 
 #define INPUT_INTENSITY_INIT 2
-#define Cla_INPUT_INTENSITY_INIT 0.1 // 10 //khz
+#define Cla_INPUT_INTENSITY_INIT 0.1 //khz
 
 #define LastTrain 0
 #define NowTrain 1
@@ -30,10 +29,10 @@ extern long int imageNum;
 //  可视化突触权重
 // ------------------------------------------------------------------------------
 vector<vector<float>> PEVisual(WIDTH *NExc_Sqrt, vector<float>(HEIGHT *NExc_Sqrt));
-vector<vector<float>> ECVisual(_ECw_X, vector<float>(_ECw_Y));
-vector<vector<float>> ECVisual_inferred(_ECw_X, vector<float>(_ECw_Y));
-vector<vector<float>> CEVisual(_ECw_Y, vector<float>(_ECw_X));
-vector<vector<float>> CEVisual_inferred(_ECw_Y, vector<float>(_ECw_X));
+vector<vector<float>> ECVisual(ECw_X, vector<float>(ECw_Y));
+vector<vector<float>> ECVisual_inferred(ECw_X, vector<float>(ECw_Y));
+vector<vector<float>> CEVisual(ECw_Y, vector<float>(ECw_X));
+vector<vector<float>> CEVisual_inferred(ECw_Y, vector<float>(ECw_X));
 #ifdef PLOT_ON
 GNUplot PEplotter;
 GNUplot ECplotter, ECplotter_inferred;
@@ -53,4 +52,16 @@ GNUplot plot_response_rate;
 GNUplot plot_spike;
 GNUplot plot_cla_spike;
 #endif
+
+int str2int(string s);
+void convertRateToRandomNumberThreshold(vector<float> rateKHz_pattern, uint64_t *pattern, int Num);
+void get_rand_g(float *p, long int n, int g_max);
+void get_rand(uint64_t *p, long int n, int max);
+void get_inputdata(string datapath, vector<vector<float>> &images, vector<float> &labels, vector<vector<float>> &images_test, vector<float> &labels_test);
+void rewrite_gEI_gIE();
+void reset_Cla_para();
+void feed_to_networks(vector<float> image, vector<float> &FR_khz, float input_intensity);
+void Cla_feed_to_networks(int label, vector<float> &cla_FR_khz, float cla_input_intensity);
+void reset_ratesPPoi(vector<float> &FR_khz);
+void reset_ratesPCla(vector<float> &cla_FR_khz);
 #endif

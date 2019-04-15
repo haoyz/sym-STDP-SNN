@@ -58,7 +58,7 @@ int main()
   fill_n(assignments, NExc, -1);
   // vector<vector<int>> result_monitor;//spike_record of all samples
   // vector<int> spike_record;//record spikes of each neuron when single samples
-  // int result_monitor[_LABELS_CONST][NExc] = {0}; //spike_record of all samples
+  // int result_monitor[LABELS_CONST][NExc] = {0}; //spike_record of all samples
   int *assignments_dist = new int[10];
   fill_n(assignments_dist, 10, 0);
 
@@ -68,10 +68,10 @@ int main()
   int *assignmentsTestDataSet_dist = new int[10];
   fill_n(assignmentsTestDataSet_dist, 10, 0);
 
-  int(*result_monitor)[NExc] = new int[_LABELS_CONST][NExc]; //所有样本的spike_record
-  fill_n(result_monitor[0], _LABELS_CONST * NExc, 0);
-  int(*cla_result_monitor)[NCla] = new int[_LABELS_CONST][NCla]; //所有样本的spike_record
-  fill_n(cla_result_monitor[0], _LABELS_CONST * NCla, 0);
+  int(*result_monitor)[NExc] = new int[LABELS_CONST][NExc]; //所有样本的spike_record
+  fill_n(result_monitor[0], LABELS_CONST * NExc, 0);
+  int(*cla_result_monitor)[NCla] = new int[LABELS_CONST][NCla]; //所有样本的spike_record
+  fill_n(cla_result_monitor[0], LABELS_CONST * NCla, 0);
   int *spike_record = new int[NExc]; //单个样本，NExc神经元各自发放数
   fill_n(spike_record, NExc, 0);
   int *cla_spike_record = new int[NCla]; //单个样本，NCla神经元各自发放数
@@ -90,7 +90,7 @@ int main()
   clock_t end;
   if (DATA != "cifar10/")
   {
-    if (_Dataset_train)
+    if (DATASET_TRAIN)
     {
       cout << "**********train-images-idx3-ubyte**********" << endl;
       read_mnist_images(path + "train-images-idx3-ubyte", images);
@@ -114,7 +114,7 @@ int main()
   else
   {
 #ifdef GRAYSCALE
-    if (_Dataset_train)
+    if (DATASET_TRAIN)
     {
       read_cifar10_train(path, GRAYSCALE, images, labels);
       read_cifar10_test(path, GRAYSCALE, imagesTestDataSet, labelsTestDataSet);
@@ -131,7 +131,6 @@ int main()
   // ------------------------------------------------------------------------------
   float input_intensity = INPUT_INTENSITY_INIT; //输入强度，256/8*input_intensity
   float *FR_khz = new float[NPoi];
-  offsetPPoi = 0;                              //GeNN的泊松神经元自带参数，没用。
   uint64_t *CPUratesPPoi = new uint64_t[NPoi]; //genn要求手动给ratesPPoi分配内存
   int size_PPoi = NPoi * sizeof(uint64_t);
   CHECK_CUDA_ERRORS(cudaMalloc((void **)&ratesPPoi, size_PPoi));
@@ -170,7 +169,7 @@ int main()
     for (int j_dense = 0; j_dense < N; j_dense++) //列post
     {
       if (i_dense == j_dense)
-        tmp_g_EI[i_dense * N + j_dense] = _g_EI; //大于1e-19就能分开 0.5有点大？
+        tmp_g_EI[i_dense * N + j_dense] = g_EI; //大于1e-19就能分开 0.5有点大？
       else
         tmp_g_EI[i_dense * N + j_dense] = 0.0; //大于1e-19就能分开
     }
@@ -181,7 +180,7 @@ int main()
       if (i_dense == j_dense)
         tmp_g_IE[i_dense * N + j_dense] = 0.0; //大于1e-19就能分开
       else
-        tmp_g_IE[i_dense * N + j_dense] = _g_IE; //大于1e-19就能分开
+        tmp_g_IE[i_dense * N + j_dense] = g_IE; //大于1e-19就能分开
     }
   setSparseConnectivityFromDense(gE2I, _preN_EI, _postN_EI, tmp_g_EI, &CE2I); //gI2E CE2I都是平台生成变量
   setSparseConnectivityFromDense(gI2E, _preN_IE, _postN_IE, tmp_g_IE, &CI2E);
@@ -216,10 +215,10 @@ int main()
   //  可视化突触权重！！！
   // ------------------------------------------------------------------------------
   auto PEVisual = new float[WIDTH * NExc_Sqrt][HEIGHT * NExc_Sqrt];
-  auto ECVisual = new float[_ECw_X][_ECw_Y];
-  auto ECVisual_inferred = new float[_ECw_X][_ECw_Y];
-  auto CEVisual = new float[_ECw_Y][_ECw_X];          //　added at 2017-12-19 09:05
-  auto CEVisual_inferred = new float[_ECw_Y][_ECw_X]; //　added at 2017-12-19 09:05
+  auto ECVisual = new float[ECw_X][ECw_Y];
+  auto ECVisual_inferred = new float[ECw_X][ECw_Y];
+  auto CEVisual = new float[ECw_Y][ECw_X];          //　added at 2017-12-19 09:05
+  auto CEVisual_inferred = new float[ECw_Y][ECw_X]; //　added at 2017-12-19 09:05
 #ifdef PLOT_ON
   GNUplot PEplotter;
   GNUplot ECplotter, ECplotter_inferred;

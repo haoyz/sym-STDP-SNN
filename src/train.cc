@@ -27,15 +27,7 @@ using namespace std;
 long int imageNum;
 long int imageNum_train;
 string path = "../../Downloads/dataset/" + string(DATA);
-int str2int(string s);
-void convertRateToRandomNumberThreshold(vector<float> rateKHz_pattern, uint64_t *pattern, int Num);
-void get_inputdata(string datapath, vector<vector<float>> &images, vector<float> &labels, vector<vector<float>> &images_test, vector<float> &labels_test);
-void rewrite_gEI_gIE();
-void reset_Cla_para();
-void feed_to_networks(vector<float> image, vector<float> &FR_khz, float input_intensity);
-void Cla_feed_to_networks(int label, vector<float> &cla_FR_khz, float cla_input_intensity);
-void reset_ratesPPoi(vector<float> &FR_khz);
-void reset_ratesPCla(vector<float> &cla_FR_khz);
+
 int main()
 {
   //  timer
@@ -62,8 +54,8 @@ int main()
   vector<int> assignments_dist(NUM_CLASS, 0);
   vector<int> assignmentsTestDataSet(NExc, -1);
   vector<int> assignmentsTestDataSet_dist(NUM_CLASS, 0);
-  vector<vector<int>> result_monitor(_LABELS_CONST, vector<int>(NExc, 0)); //所有样本的spike_record
-  vector<vector<int>> cla_result_monitor(_LABELS_CONST, vector<int>(NCla, 0));
+  vector<vector<int>> result_monitor(LABELS_CONST, vector<int>(NExc, 0)); //所有样本的spike_record
+  vector<vector<int>> cla_result_monitor(LABELS_CONST, vector<int>(NCla, 0));
   vector<int> spike_record(NExc, 0); //单个样本，NExc神经元响应
   vector<int> cla_spike_record(NCla, 0);
   // ------------------------------------------------------------------------------
@@ -93,7 +85,6 @@ int main()
   // ------------------------------------------------------------------------------
   float input_intensity = INPUT_INTENSITY_INIT; //输入强度，256/8*input_intensity
   vector<float> FR_khz(NPoi, 0);
-  offsetPPoi = 0;                              //GeNN的泊松神经元自带参数，没用。
   uint64_t *CPUratesPPoi = new uint64_t[NPoi]; //genn要求手动给ratesPPoi分配内存
   CHECK_CUDA_ERRORS(cudaMalloc((void **)&ratesPPoi, NPoi * sizeof(uint64_t)));
   CHECK_CUDA_ERRORS(cudaMemcpy(ratesPPoi, CPUratesPPoi, NPoi * sizeof(uint64_t), cudaMemcpyHostToDevice));
@@ -217,7 +208,7 @@ int main()
       fill_n(testDataEvaluateModeP2E, size_gP2E, testDataEvaluateMode);
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModePExc, testDataEvaluateModePExc, NExc * sizeof(bool), cudaMemcpyHostToDevice));
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModeP2E, testDataEvaluateModeP2E, size_gP2E * sizeof(bool), cudaMemcpyHostToDevice));
-      if (imageNum >= _NUM_TRAINING_SL_ini)
+      if (imageNum >= NUM_TRAINING_SL_INI)
       {
         fill_n(testDataEvaluateModePCla, NCla, testDataEvaluateMode);
         fill_n(testDataEvaluateModeE2C, size_gE2C, testDataEvaluateMode);
@@ -227,7 +218,7 @@ int main()
       if (!testDataEvaluateMode) //false时表示已经跑完测试集，true时刚开始要跑测试集
       {
         int offsetNow = 0;
-        static int current_evaluationNow = 0; // 1; // 0;
+        static int current_evaluationNow = 0;
         cout << "\nEvaluating with TestDataSet after trained " << current_evaluationNow * update_interval << " samples" << endl;
         get_new_assignments(assignmentsTestDataSet, offsetNow, result_monitor, labels_test); //result_monitor:所有样本的spike_record
         get_assignments_distribution(assignmentsTestDataSet, assignmentsTestDataSet_dist);
@@ -270,13 +261,13 @@ int main()
     // ------------------------------------------------------------------------------
     //  分类层
     // ------------------------------------------------------------------------------
-    if (imageNum >= _NUM_TRAINING_SL_ini)
+    if (imageNum >= NUM_TRAINING_SL_INI)
     {
 #ifdef TRAIN_LAYER_BY_LAYER
       static bool OnlyOnceInitCla = true;
-      if (OnlyOnceInitCla) //训练到_NUM_TRAINING_SL_ini个样本重置Cla层和gE2C的所有变量
+      if (OnlyOnceInitCla) //训练到NUM_TRAINING_SL_INI个样本重置Cla层和gE2C的所有变量
       {
-        cout << "Start to train Cla. in SL:" << _NUM_TRAINING_SL_ini << endl;
+        cout << "Start to train Cla. in SL:" << NUM_TRAINING_SL_INI << endl;
         OnlyOnceInitCla = false;
         reset_Cla_para();
       }
@@ -416,11 +407,11 @@ int main()
       {
         if ((imageNum + 1) % update_interval == 0) //权重方差
         {
-          get_variance(variance, gP2E, NExc, NPoi, _NORMAL);
+          get_variance(variance, gP2E, NExc, NPoi, NORMAL);
           write_variance_to_file(variance, imageNum / update_interval);
           plot_variance(plot_v);
           plot_variance_distribution(plot_v_dist);
-          get_variance(variance_E2C, gE2C, NExc, NCla, _cla_NORMAL);
+          get_variance(variance_E2C, gE2C, NExc, NCla, Cla_NORMAL);
           write_variance_gEC_to_file(variance_E2C, imageNum / update_interval);
           plot_variance_E2C(plot_vE2C);
           plot_variance_E2C_distribution(plot_vE2C_dist);
@@ -486,11 +477,11 @@ int main()
     // get_visual_ECw_inferred(ECVisual_inferred, assignments);
     // write_visual_ECw_inferred_to_file(ECVisual_inferred);
     // plot_visual_ECw_inferred(ECplotter_inferred);
-    get_variance(variance, gP2E, NExc, NPoi, _NORMAL);
+    get_variance(variance, gP2E, NExc, NPoi, NORMAL);
     write_variance_to_file(variance, imageNum / update_interval);
     plot_variance(plot_v);
     plot_variance_distribution(plot_v_dist);
-    get_variance(variance, gE2C, NExc, NCla, _cla_NORMAL);
+    get_variance(variance, gE2C, NExc, NCla, Cla_NORMAL);
     write_variance_gEC_to_file(variance_E2C, imageNum / update_interval);
     plot_variance_E2C(plot_vE2C);
     plot_variance_E2C_distribution(plot_vE2C_dist);
@@ -552,13 +543,29 @@ void convertRateToRandomNumberThreshold(vector<float> rateKHz_pattern, uint64_t 
     pattern[i] = (uint64_t)(rateKHz_pattern[i] * fac);
   }
 }
+void get_rand_g(float *p, long int n, int g_max) //函数功能为产生n个N_rand内的随机数，存储于数组*ratesPop1中。
+{
+  long int i;                  //大小根本不够大
+  srand((unsigned)time(NULL)); //设置随机数种子，使每次获取的随机序列不同。
+  for (i = 0; i < n; i++)
+    p[i] = rand() % g_max / 1000.0; //生成N_rand间的随机数。
+                                    //for(i = 0; i < n; i ++)
+                                    //MYRAND(myrand,p[i]);
+}
+void get_rand(uint64_t *p, long int n, int max)
+{
+  long int i;
+  srand((unsigned)time(NULL));
+  for (i = 0; i < n; i++)
+    p[i] = (uint64_t)(rand() % (max)); //返回的是秒数，不能在短时间内多次调用该函数来获得随机数列，应该一次性获得所有随机数列
+}
 void get_inputdata(string datapath, vector<vector<float>> &images, vector<float> &labels, vector<vector<float>> &images_test, vector<float> &labels_test)
 {
   if (DATA == "cifar10/")
   {
 #ifdef GRAYSCALE
     cout << "**********cifar10**********" << endl;
-    if (_Dataset_train)
+    if (DATASET_TRAIN)
     {
       read_cifar10_train(path, GRAYSCALE, images, labels);
       read_cifar10_test(path, GRAYSCALE, images_test, labels_test);
@@ -577,7 +584,7 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
   else if (DATA == "fashion-mnist/")
   {
     cout << "**********fashion-mnist**********" << endl;
-    if (_Dataset_train)
+    if (DATASET_TRAIN)
     {
       // read_mnist_images(path + "train-images-idx3-ubyte", images);
       read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
@@ -596,7 +603,7 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
   else
   {
     cout << "**********mnist**********" << endl;
-    if (_Dataset_train)
+    if (DATASET_TRAIN)
     {
       // read_mnist_images(path + "train-images-idx3-ubyte", images);
       read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
@@ -617,44 +624,42 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
 void rewrite_gEI_gIE()
 {
   //先编译model文件才有gE2I变量……
-  float *g_EI = new float[preN_EI * postN_EI]; //dense型存储（对应到函数实现上）
-  float *g_IE = new float[preN_IE * postN_IE]; //dense型存储（对应到函数实现上）
+  float *g_EI_array = new float[preN_EI * postN_EI]; //dense型存储（对应到函数实现上）
+  float *g_IE_array = new float[preN_IE * postN_IE]; //dense型存储（对应到函数实现上）
   //E——>I
   for (int i_dense = 0; i_dense < preN_EI; i_dense++)    //行pre
     for (int j_dense = 0; j_dense < postN_EI; j_dense++) //列post
     {
       if (i_dense == j_dense)
-        g_EI[i_dense * postN_EI + j_dense] = _g_EI; //大于1e-19就能分开
+        g_EI_array[i_dense * postN_EI + j_dense] = g_EI; //大于1e-19就能分开
       else
-        g_EI[i_dense * postN_EI + j_dense] = 0.0; //大于1e-19就能分开
+        g_EI_array[i_dense * postN_EI + j_dense] = 0.0; //大于1e-19就能分开
     }
   //I——>E
   for (int i_dense = 0; i_dense < preN_IE; i_dense++)    //行pre
     for (int j_dense = 0; j_dense < postN_IE; j_dense++) //列post
     {
       if (i_dense == j_dense)
-        g_IE[i_dense * postN_IE + j_dense] = 0.0; //大于1e-19就能分开
+        g_IE_array[i_dense * postN_IE + j_dense] = 0.0; //大于1e-19就能分开
       else
-        g_IE[i_dense * postN_IE + j_dense] = _g_IE; //大于1e-19就能分开
+        g_IE_array[i_dense * postN_IE + j_dense] = g_IE; //大于1e-19就能分开
     }
-  setSparseConnectivityFromDense(gE2I, preN_EI, postN_EI, g_EI, &CE2I);
-  setSparseConnectivityFromDense(gI2E, preN_IE, postN_IE, g_IE, &CI2E);
+  setSparseConnectivityFromDense(gE2I, preN_EI, postN_EI, g_EI_array, &CE2I);
+  setSparseConnectivityFromDense(gI2E, preN_IE, postN_IE, g_IE_array, &CI2E);
 
-  delete[] g_EI;
-  delete[] g_IE;
+  delete[] g_EI_array;
+  delete[] g_IE_array;
 }
 void reset_Cla_para()
 {
   glbSpkCntPCla[0] = 0;
 
   fill_n(glbSpkPCla, NCla, 0);
-  fill_n(sTPCla, NCla, -10);
+  fill_n(sTPCla, NCla, -10); //last spike time
   fill_n(VPCla, NCla, -100);
   fill_n(trace1PCla, NCla, 1);
   fill_n(trace2PCla, NCla, 1);
   fill_n(seedPCla, NCla, 1);
-  fill_n(theRndPCla, NCla, 0);
-  fill_n(spikeTimePCla, NCla, -10);
 
   pushPClaStateToDevice();
   pushPClaSpikesToDevice();
