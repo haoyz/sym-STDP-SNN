@@ -4,14 +4,14 @@
 #include "reader/mnist/mnist.h"
 #include "reader/cifar10/cifar10.h"
 #include "gnuplot.h"
-#include "plot.h"
+#include "drafting.h"
 #include "file_recorder.h"
 #include "evaluation.h"
 #include "file_read.h"
 
 #include <cuda_runtime.h>
 #include <fstream>
-// #include <iostream>
+#include <iostream>
 #include <time.h>
 #include <string>
 #include <sstream>
@@ -44,11 +44,8 @@ int main()
   // set parameters and equations
   //------------------------------------------------------------------------------
   int sum_glbSpkCntPExc = 0;
-  int num_samples;
   int num_train_samples;
   int num_test_samples;
-  int update_interval;
-  int evaluation_interval;
 
   vector<int> assignments(NExc, -1); //assign labels to each neuron using assignments
   vector<int> assignments_dist(NUM_CLASS, 0);
@@ -73,9 +70,6 @@ int main()
     num_train_samples = images.size();
     num_test_samples = images_test.size();
     cout << "images size: " << images.size() << "  images_test size: " << images_test.size() << endl;
-    update_interval = min(10000, num_train_samples);
-    evaluation_interval = min(10000, num_test_samples);
-    num_samples = NUM_SAMPLES;
   }
   else
     exit(1);
@@ -137,29 +131,22 @@ int main()
   //  可视化突触权重
   // ------------------------------------------------------------------------------
 #ifdef PLOT_ON
-  plot_visual_PEw_init(PEplotter);
+  Drafting PEw{init_PEw, plot_PEw, true};
   get_visual_PEw(PEVisual);
   write_visual_PEw_to_file(PEVisual);
-  plot_visual_PEw(PEplotter);
-  // plot_visual_ECw_init(ECplotter);
-  // get_visual_ECw(ECVisual);
-  // write_visual_ECw_to_file(ECVisual);
-  // plot_visual_ECw(ECplotter);
-  // plot_visual_ECw_inferred_init(ECplotter_inferred);
-  // get_visual_ECw_inferred(ECVisual_inferred, assignments);
-  // write_visual_ECw_inferred_to_file(ECVisual_inferred);
-  // plot_visual_ECw_inferred(ECplotter_inferred);
+// Drafting ECw{init_ECw, plot_ECw, true};
+// get_visual_ECw(ECVisual);
+// write_visual_ECw_to_file(ECVisual);
 #endif
   // ------------------------------------------------------------------------------
   //  收敛曲线（准确率、权重方差）、混淆矩阵、spike_monitor绘图
   // ------------------------------------------------------------------------------
-  int performance_size = num_samples / update_interval;
-  vector<float> performance(performance_size, 0);
-  vector<float> cla_performance(performance_size, 0);
-  vector<float> performanceNowUseTrainData(performance_size, 0);
-  vector<float> performanceNowUseTestData(performance_size, 0);
-  vector<float> cla_performanceNowUseTrainData(performance_size, 0);
-  vector<float> cla_performanceNowUseTestData(performance_size, 0);
+  vector<float> performance(UPDATE_TOTAL, 0);
+  vector<float> cla_performance(UPDATE_TOTAL, 0);
+  vector<float> performanceNowUseTrainData(UPDATE_TOTAL, 0);
+  vector<float> performanceNowUseTestData(UPDATE_TOTAL, 0);
+  vector<float> cla_performanceNowUseTrainData(UPDATE_TOTAL, 0);
+  vector<float> cla_performanceNowUseTestData(UPDATE_TOTAL, 0);
 
   vector<float> variance(NExc, 0);
   vector<float> variance_E2C(NExc, 0);
@@ -174,33 +161,32 @@ int main()
   vector<int> theta(60, 0);
   size_t size_thetaPExc = NExc;
 #ifdef PLOT_ON
-  plot_performance_init(plot_per, num_samples);
-  plot_performance_init(plot_perNowUseTrainData, num_samples);
-  plot_performance_init(plot_perNowUseTestData, num_samples);
-  plot_variance_init(plot_v, num_samples / update_interval);
-  plot_variance_E2C_init(plot_vE2C, num_samples / update_interval);
-  plot_confusion_m_init(plot_confusion);
-  plot_confusion_m_init(plot_confusion_supervised);
-  plot_variance_distribution_init(plot_v_dist);
-  plot_variance_E2C_distribution_init(plot_vE2C_dist);
-  plot_assignments_distribution_init(plot_assign_dist);
-  plot_theta_init(plot_theta);
-  plot_response_rates_init(plot_response_rate);
+  Drafting perNowUseTestData{init_performance, plot_performance};
+  Drafting varianceP2E{init_varianceP2E, plot_varianceP2E};
+  Drafting varianceE2C{init_varianceE2C, plot_varianceE2C};
+  Drafting usl_confusion{init_confusion, plot_usl_confusion, true};
+  Drafting sl_confusion{init_confusion, plot_sl_confusion, true};
+  Drafting varianceP2E_distribution{init_varianceP2E_distribution, plot_varianceP2E_distribution, true};
+  Drafting varianceE2C_distribution{init_varianceE2C_distribution, plot_varianceE2C_distribution, true};
+  Drafting assign_dist{init_assign_dist, plot_assign_dist};
+  Drafting thetas{init_theta, plot_theta};
+  Drafting response_rates{init_response_rates, plot_response_rates};
 #endif
 #ifdef SPIKES_MONITOR //plot_spike如果声明和使用不在同一个#ifdef下会报错
-  plot_spikes_init(plot_spike);
-  plot_cla_spikes_init(plot_cla_spike);
+  Drafting spikes{init_spikes, plot_spikes};
+  Drafting Claspikes{init_Claspikes, plot_Claspikes};
 #endif
+
   // ------------------------------------------------------------------------------
   //  RUN
   // ------------------------------------------------------------------------------
   imageNum = 0;
   bool testDataEvaluateMode = true; // false;
-  while (imageNum < num_samples)
+  while (imageNum < NUM_SAMPLES)
   {
     //imageNum集中更新
     static bool testDataStartOnce = true;
-    if (testDataStartOnce || (((testDataEvaluateMode == false && imageNum % update_interval == 0) || (testDataEvaluateMode == true && imageNum % evaluation_interval == 0)) && (sum_glbSpkCntPExc >= NUM_SPIKE_RESP || input_intensity >= 32)))
+    if (testDataStartOnce || (((testDataEvaluateMode == false && imageNum % UPDATE_INTERVAL == 0) || (testDataEvaluateMode == true && imageNum % EVALUATION_INTERVAL == 0)) && (sum_glbSpkCntPExc >= NUM_SPIKE_RESP || input_intensity >= 32)))
     {
       testDataStartOnce = false;
       testDataEvaluateMode = !testDataEvaluateMode; //true-false-true-false...
@@ -219,26 +205,26 @@ int main()
       {
         int offsetNow = 0;
         static int current_evaluationNow = 0;
-        cout << "\nEvaluating with TestDataSet after trained " << current_evaluationNow * update_interval << " samples" << endl;
+        cout << "\nEvaluating with TestDataSet after trained " << current_evaluationNow * UPDATE_INTERVAL << " samples" << endl;
         get_new_assignments(assignmentsTestDataSet, offsetNow, result_monitor, labels_test); //result_monitor:所有样本的spike_record
         get_assignments_distribution(assignmentsTestDataSet, assignmentsTestDataSet_dist);
         write_assignments_distribution_to_file(assignmentsTestDataSet_dist);
 
-        get_performance(performanceNowUseTestData, offsetNow, current_evaluationNow, result_monitor, assignmentsTestDataSet, labels_test, update_interval);
-        cla_get_performance(cla_performanceNowUseTestData, offsetNow, current_evaluationNow, cla_result_monitor, labels_test, update_interval);
+        get_performance(performanceNowUseTestData, offsetNow, current_evaluationNow, result_monitor, assignmentsTestDataSet, labels_test, UPDATE_INTERVAL);
+        cla_get_performance(cla_performanceNowUseTestData, offsetNow, current_evaluationNow, cla_result_monitor, labels_test, UPDATE_INTERVAL);
         write_performance_to_file(performanceNowUseTestData, cla_performanceNowUseTestData, current_evaluationNow, NowTest);
 
-        get_confusion_m(confusion_m, offsetNow, result_monitor, assignmentsTestDataSet, labels_test, update_interval);
+        get_confusion_m(confusion_m, offsetNow, result_monitor, assignmentsTestDataSet, labels_test, UPDATE_INTERVAL);
         write_confusion_m_to_file(confusion_m, UNSUPERVISED);
 
-        get_confusion_m_supervised(confusion_m_supervised, offsetNow, cla_result_monitor, labels_test, update_interval);
+        get_confusion_m_supervised(confusion_m_supervised, offsetNow, cla_result_monitor, labels_test, UPDATE_INTERVAL);
         write_confusion_m_to_file(confusion_m_supervised, SUPERVISED);
 
 #ifdef PLOT_ON
-        plot_assignments_distribution(plot_assign_dist);
-        plot_performance(plot_perNowUseTestData, NowTest);
-        plot_confusion_m(plot_confusion, UNSUPERVISED);
-        plot_confusion_m(plot_confusion_supervised, SUPERVISED);
+        assign_dist.update();
+        perNowUseTestData.update();
+        usl_confusion.update();
+        sl_confusion.update();
 #endif
         current_evaluationNow++;
         imageNum = imageNum_train;
@@ -315,44 +301,14 @@ int main()
     }
 #ifdef SPIKES_MONITOR
     if (write_spike_to_file(spikes_real_time, NExc, "spike.dat"))
-      plot_spikes(plot_spike);
+      spikes.update());
     if (write_spike_to_file(cla_spikes_real_time, NCla, "cla_spike.dat"))
-      plot_cla_spikes(plot_cla_spike);
+      Claspikes.update();
     spikes_real_time.assign(int(RUN_TIME / DT), vector<int>(NExc, 0)); //复位发放的神经元
     cla_spikes_real_time.assign(int(RUN_TIME / DT), vector<int>(NCla, 0));
 #endif
     if (sum_glbSpkCntPExc < 60)
       response_rate[sum_glbSpkCntPExc] = response_rate[sum_glbSpkCntPExc] + 1;
-    // #ifdef PLOT_ON
-    //     if (imageNum > 0 && !testDataEvaluateMode) //测试集评估时不跑
-    //     {
-    //       if (imageNum % update_interval == 0) //实时准确率
-    //       {
-    //         static bool get_assignment_flag = false;
-    //         offset = (imageNum % num_train_samples - update_interval) >= 0 ? (imageNum % num_train_samples - update_interval) : 50000;
-    //         current_evaluation = imageNum / update_interval;
-    //         if (get_assignment_flag && whether_evaluation_or_not(assignments)) //2w开始画准确率
-    //         {
-    //           cout << "calculate performance&confusion_m ..." << endl;
-    //           get_visual_ECw_inferred(ECVisual_inferred, assignments);
-    //           write_visual_ECw_inferred_to_file(ECVisual_inferred);
-    //           plot_visual_ECw_inferred(ECplotter_inferred);
-    //           // get_visual_CEw_inferred(CEVisual_inferred, assignments);
-    //           // write_visual_CEw_inferred_to_file(CEVisual_inferred);
-    //           // plot_visual_CEw_inferred(CEplotter_inferred);
-    //         }
-    //         get_assignment_flag = true;
-
-    //         cout << "\nEvaluating with TrainDataSet when Training..." << endl;
-    //         get_performance(performanceNowUseTrainData, offset, current_evaluation, result_monitor, assignments, labels);
-    //         cla_get_performance(cla_performanceNowUseTrainData, offset, current_evaluation, cla_result_monitor, labels);
-    //         write_performance_to_file(performanceNowUseTrainData, cla_performanceNowUseTrainData, current_evaluation, NowTrain);
-    //         plot_performance(plot_perNowUseTrainData, NowTrain);
-    //         cout << "end" << endl;
-
-    //       }
-    //     }
-    // #endif
 
     // ------------------------------------------------------------------------------
     //  是否增加输入强度？
@@ -374,12 +330,12 @@ int main()
       {
         cout << "imageNum without " << NUM_SPIKE_RESP << "-spike-response: " << (imageNum + 1) << endl;
       }
-      result_monitor[imageNum % update_interval].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
-      cla_result_monitor[imageNum % update_interval].assign(cla_spike_record.begin(), cla_spike_record.end());
+      result_monitor[imageNum % UPDATE_INTERVAL].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
+      cla_result_monitor[imageNum % UPDATE_INTERVAL].assign(cla_spike_record.begin(), cla_spike_record.end());
       if ((imageNum + 1) % 100 == 0 && imageNum > 0) //显示而已
       {
         if (!testDataEvaluateMode)
-          cout << "Training data - runs done: " << (imageNum + 1) << " -> " << num_samples << "; input_intensity: " << input_intensity << endl;
+          cout << "Training data - runs done: " << (imageNum + 1) << " -> " << NUM_SAMPLES << "; input_intensity: " << input_intensity << endl;
         else
           cout << "Test data for " << imageNum_train << "  - runs done: " << (imageNum + 1) << " -> " << num_test_samples << "; input_intensity: " << input_intensity << endl;
       }
@@ -391,63 +347,48 @@ int main()
       {
         stepTimeGPU();
       }
-      if ((imageNum + 1) % update_interval == 0 && imageNum > 0 && !testDataEvaluateMode)
+      if ((imageNum + 1) % UPDATE_INTERVAL == 0 && imageNum > 0 && !testDataEvaluateMode) //测试集评估时不跑
       {
         CHECK_CUDA_ERRORS(cudaMemcpy(gP2E, d_gP2E, size_gP2E * sizeof(float), cudaMemcpyDeviceToHost));
         CHECK_CUDA_ERRORS(cudaMemcpy(gE2C, d_gE2C, size_gE2C * sizeof(float), cudaMemcpyDeviceToHost));
         CHECK_CUDA_ERRORS(cudaMemcpy(thetaPExc, d_thetaPExc, NExc * sizeof(float), cudaMemcpyDeviceToHost));
 
-        string fileid = "_" + to_string((imageNum + 1) / update_interval);
+        string fileid = "_" + to_string((imageNum + 1) / UPDATE_INTERVAL);
         save_gP2E("gP2E" + fileid);
         save_gE2C("gE2C" + fileid);
         save_theta("theta" + fileid);
-      }
 #ifdef PLOT_ON
-      if (imageNum > 0 && !testDataEvaluateMode) //测试集评估时不跑
-      {
-        if ((imageNum + 1) % update_interval == 0) //权重方差
-        {
-          get_variance(variance, gP2E, NExc, NPoi, NORMAL);
-          write_variance_to_file(variance, imageNum / update_interval);
-          plot_variance(plot_v);
-          plot_variance_distribution(plot_v_dist);
-          get_variance(variance_E2C, gE2C, NExc, NCla, Cla_NORMAL);
-          write_variance_gEC_to_file(variance_E2C, imageNum / update_interval);
-          plot_variance_E2C(plot_vE2C);
-          plot_variance_E2C_distribution(plot_vE2C_dist);
-        }
-        if (((imageNum + 1) % update_interval == 0) || ((imageNum + 1) % update_interval == 0))
-        {
+        get_variance(variance, gP2E, NExc, NPoi, NORMAL);
+        write_variance_to_file(variance, imageNum / UPDATE_INTERVAL);
+        varianceP2E.update();
+        varianceP2E_distribution.update();
 
-          CHECK_CUDA_ERRORS(cudaMemcpy(gP2E, d_gP2E, size_gP2E * sizeof(float), cudaMemcpyDeviceToHost));
-          CHECK_CUDA_ERRORS(cudaMemcpy(gE2C, d_gE2C, size_gE2C * sizeof(float), cudaMemcpyDeviceToHost));
+        get_variance(variance_E2C, gE2C, NExc, NCla, Cla_NORMAL);
+        write_variance_gEC_to_file(variance_E2C, imageNum / UPDATE_INTERVAL);
+        varianceE2C.update();
+        varianceE2C_distribution.update();
 
-          get_visual_PEw(PEVisual);
-          write_visual_PEw_to_file(PEVisual);
-          plot_visual_PEw(PEplotter);
-          // get_visual_ECw(ECVisual);
-          // write_visual_ECw_to_file(ECVisual);
-          // plot_visual_ECw(ECplotter);
-        }
-        if ((imageNum + 1) % update_interval == 0)
-        {
-          write_vector_to_file(response_rate, 60, "response_rate.dat");
-          plot_response_rates(plot_response_rate);
-        }
-        if ((imageNum + 1) % update_interval == 0)
-        {
+        CHECK_CUDA_ERRORS(cudaMemcpy(gP2E, d_gP2E, size_gP2E * sizeof(float), cudaMemcpyDeviceToHost));
+        CHECK_CUDA_ERRORS(cudaMemcpy(gE2C, d_gE2C, size_gE2C * sizeof(float), cudaMemcpyDeviceToHost));
+        get_visual_PEw(PEVisual);
+        write_visual_PEw_to_file(PEVisual);
+        PEw.update();
+        // get_visual_ECw(ECVisual);
+        // write_visual_ECw_to_file(ECVisual);
+        // ECw.update();
 
-          CHECK_CUDA_ERRORS(cudaMemcpy(thetaPExc, d_thetaPExc, size_thetaPExc * sizeof(float), cudaMemcpyDeviceToHost));
+        write_vector_to_file(response_rate, 60, "response_rate.dat");
+        response_rates.update();
 
-          theta.assign(75, 0);
-          for (int i = 0; i < size_thetaPExc; i++)
-            if ((int)(thetaPExc[i] / 1) < 75)
-              theta[(int)(thetaPExc[i] / 1)] += 1;
-          write_vector_to_file(theta, 75, "theta.dat");
-          // plot_thetas(plot_theta);
-        }
-      }
+        CHECK_CUDA_ERRORS(cudaMemcpy(thetaPExc, d_thetaPExc, size_thetaPExc * sizeof(float), cudaMemcpyDeviceToHost));
+        theta.assign(75, 0);
+        for (int i = 0; i < size_thetaPExc; i++)
+          if ((int)(thetaPExc[i] / 1) < 75)
+            theta[(int)(thetaPExc[i] / 1)] += 1;
+        write_vector_to_file(theta, 75, "theta.dat");
+        thetas.update();
 #endif
+      }
 
       input_intensity = INPUT_INTENSITY_INIT; //输入强度重置
       imageNum += 1;
@@ -470,21 +411,18 @@ int main()
 #ifdef PLOT_ON
     get_visual_PEw(PEVisual);
     write_visual_PEw_to_file(PEVisual);
-    plot_visual_PEw(PEplotter);
+    PEw.update();
     // get_visual_ECw(ECVisual);
     // write_visual_ECw_to_file(ECVisual);
-    // plot_visual_ECw(ECplotter);
-    // get_visual_ECw_inferred(ECVisual_inferred, assignments);
-    // write_visual_ECw_inferred_to_file(ECVisual_inferred);
-    // plot_visual_ECw_inferred(ECplotter_inferred);
+    // ECw.update();
     get_variance(variance, gP2E, NExc, NPoi, NORMAL);
-    write_variance_to_file(variance, imageNum / update_interval);
-    plot_variance(plot_v);
-    plot_variance_distribution(plot_v_dist);
+    write_variance_to_file(variance, imageNum / UPDATE_INTERVAL);
+    varianceP2E.update();
+    varianceP2E_distribution.update();
     get_variance(variance, gE2C, NExc, NCla, Cla_NORMAL);
-    write_variance_gEC_to_file(variance_E2C, imageNum / update_interval);
-    plot_variance_E2C(plot_vE2C);
-    plot_variance_E2C_distribution(plot_vE2C_dist);
+    write_variance_gEC_to_file(variance_E2C, imageNum / UPDATE_INTERVAL);
+    varianceE2C.update();
+    varianceE2C_distribution.update();
 #endif
   }
 

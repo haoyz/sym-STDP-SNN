@@ -3,7 +3,6 @@
 #include "reader/mnist/mnist.h"
 #include "reader/cifar10/cifar10.h"
 #include "gnuplot.h"
-#include "plot.h"
 #include "file_recorder.h"
 #include "evaluation.h"
 #include "file_read.h"

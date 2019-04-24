@@ -2,6 +2,7 @@
 #define _TRAIN_H_
 
 #include "gnuplot.h"
+#include "model.h"
 #include "../global.h"
 #include <stddef.h> //vscode下必须有
 #include <vector>
@@ -33,25 +34,6 @@ vector<vector<float>> ECVisual(ECw_X, vector<float>(ECw_Y));
 vector<vector<float>> ECVisual_inferred(ECw_X, vector<float>(ECw_Y));
 vector<vector<float>> CEVisual(ECw_Y, vector<float>(ECw_X));
 vector<vector<float>> CEVisual_inferred(ECw_Y, vector<float>(ECw_X));
-#ifdef PLOT_ON
-GNUplot PEplotter;
-GNUplot ECplotter, ECplotter_inferred;
-GNUplot CEplotter, CEplotter_inferred;
-GNUplot plot_per;
-GNUplot plot_perNowUseTrainData;
-GNUplot plot_perNowUseTestData;
-GNUplot plot_v, plot_vE2C;
-GNUplot plot_confusion;
-GNUplot plot_confusion_supervised;
-GNUplot plot_v_dist, plot_vE2C_dist;
-GNUplot plot_assign_dist;
-GNUplot plot_theta;
-GNUplot plot_response_rate;
-#endif
-#ifdef SPIKES_MONITOR //plot_spike如果声明和使用不在同一个#ifdef下会报错
-GNUplot plot_spike;
-GNUplot plot_cla_spike;
-#endif
 
 int str2int(string s);
 void convertRateToRandomNumberThreshold(vector<float> rateKHz_pattern, uint64_t *pattern, int Num);

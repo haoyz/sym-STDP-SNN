@@ -3,6 +3,7 @@
 
 #include <string>
 #include <stdio.h> //FILE*需要
+#include <vector>
 using namespace std;
 
 class GNUplot
@@ -11,7 +12,8 @@ public:
   GNUplot() throw(string);
   ~GNUplot();
   void operator()(const string &command);
-  // send any command to gnuplot
+  void operator()(const vector<string> &command);
+
 protected:
   FILE *gnuplotpipe;
 };

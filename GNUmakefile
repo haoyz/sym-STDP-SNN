@@ -1,5 +1,5 @@
 EXECUTABLE      :=train
-SOURCES         :=src/train.cu src/model.cc src/reader/mnist/mnist.cc src/reader/cifar10/cifar10.cc src/reader/caltech/caltech.cc src/gnuplot.cc src/plot.cc src/evaluation.cc src/file_read.cc
+SOURCES         :=src/train.cu src/model.cc src/reader/mnist/mnist.cc src/reader/cifar10/cifar10.cc src/reader/caltech/caltech.cc src/gnuplot.cc src/drafting.cc src/evaluation.cc src/file_read.cc
 SIM_CODE        :=model_CODE
 
 # LIBRARIES += opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_videoio

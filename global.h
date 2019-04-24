@@ -22,7 +22,7 @@
 // #define DATA "cifar10/"
 // #define GRAYSCALE true
 #define NPoi (WIDTH * HEIGHT)
-#define N_SQRT 100
+#define N_SQRT 10
 #define NExc (N_SQRT * N_SQRT)
 #define NExc_Sqrt N_SQRT
 #define NInh NExc
@@ -36,6 +36,11 @@
 
 #define LABELS_CONST 10000
 #define NUM_SAMPLES 60000 * 15
+#define UPDATE_INTERVAL 10000 //有时候想自动化结果反而困难了
+#define EVALUATION_INTERVAL 10000
+// #define UPDATE_INTERVAL NUM_TRAIN_SAMPLES
+// #define EVALUATION_INTERVAL NUM_TEST_SAMPLES
+#define UPDATE_TOTAL (NUM_SAMPLES / UPDATE_INTERVAL)
 #define TEST_MODE_NEURON 0
 #define DATASET_TRAIN 1
 #define NUM_TRAINING_SL_INI NUM_SAMPLES * 0 //0.5 // Starting Time for Supervised Learning (SL)
