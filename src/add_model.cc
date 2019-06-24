@@ -264,8 +264,8 @@ int addSynapseModel(vector<weightUpdateModel> &weightUpdateModels)
         $(g) += $(nu_ee_post) * $(trace_pre) * $(trace2_post);
         $(trace1_post) = 1;
         $(trace2_post) = 1;
-        if ($(g)>$(g_max))
-            $(g)=$(g_max);
+        if ($(g) > $(g_max))
+            $(g) = $(g_max);
     }
     )";
     wuSTDP.needPreSt = true;
@@ -482,55 +482,4 @@ int addSynapse_fixed_Model(vector<weightUpdateModel> &weightUpdateModels)
     weightUpdateModels.push_back(wuSTDP);
     fixed = weightUpdateModels.size() - 1;
     return fixed;
-}
-int addNeuronModel_LIF_Exc_fixed(vector<neuronModel> &nModels)
-{
-    neuronModel n;
-    int LIF_Exc_fixed;
-    n.varNames.clear();
-    n.varTypes.clear();
-    n.varNames.push_back("V");
-    n.varTypes.push_back("scalar");
-    n.varNames.push_back("theta");
-    n.varTypes.push_back("scalar");
-    n.varNames.push_back("timer");
-    n.varTypes.push_back("scalar");
-    n.varNames.push_back("trace1");
-    n.varTypes.push_back("scalar");
-    n.varNames.push_back("trace2");
-    n.varTypes.push_back("scalar");
-    n.varNames.push_back("trace");
-    n.varTypes.push_back("scalar");
-    n.pNames.clear();
-    n.pNames.push_back("TV");
-    n.pNames.push_back("Vrest");
-    n.pNames.push_back("Vreset");
-    n.pNames.push_back("Vthresh");
-    n.pNames.push_back("Refrac");
-    n.pNames.push_back("test_mode");
-    n.pNames.push_back("Ttheta");
-    n.pNames.push_back("theta_plus");
-    n.pNames.push_back("offset");
-    n.pNames.push_back("Ttrace1");
-    n.pNames.push_back("Ttrace2");
-    n.pNames.push_back("Ttrace");
-    n.dpNames.clear();
-    n.simCode = R"(
-    if($(timer) > $(Refrac)) //不应期内电压不变化，电导呢？!
-    {
-        $(V) += ($(Vrest) - $(V) + $(Isyn)) / $(TV) * DT; //at two times for numerical stability
-    }
-    if($(V) < -100)//为了防止抑制低于-100时突然反向发放
-        $(V) = -100;
-    $(timer) += DT;
-    )";
-    n.thresholdConditionCode = "$(V) > ($(theta) - $(offset) + $(Vthresh)) && $(timer) > $(Refrac)"; //不应期可以把电位强制到静息电位！！！查找下不应期brian怎么处理的？
-    n.resetCode = R"(
-    //reset code is here
-    $(V) = $(Vreset); 
-    $(timer) = 0;
-    )";
-    nModels.push_back(n);
-    LIF_Exc_fixed = nModels.size() - 1;
-    return LIF_Exc_fixed;
 }

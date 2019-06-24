@@ -1,6 +1,6 @@
 #include "train.h"
 #include "model.h"
-#include "reader/caltech/caltech.h"
+// #include "reader/caltech/caltech.h"
 #include "reader/mnist/mnist.h"
 #include "reader/cifar10/cifar10.h"
 #include "gnuplot.h"
@@ -134,9 +134,9 @@ int main()
   Drafting PEw{init_PEw, plot_PEw, true};
   get_visual_PEw(PEVisual);
   write_visual_PEw_to_file(PEVisual);
-// Drafting ECw{init_ECw, plot_ECw, true};
-// get_visual_ECw(ECVisual);
-// write_visual_ECw_to_file(ECVisual);
+  Drafting ECw{init_ECw, plot_ECw, true};
+  get_visual_ECw(ECVisual);
+  write_visual_ECw_to_file(ECVisual);
 #endif
   // ------------------------------------------------------------------------------
   //  收敛曲线（准确率、权重方差）、混淆矩阵、spike_monitor绘图
@@ -190,17 +190,18 @@ int main()
     {
       testDataStartOnce = false;
       testDataEvaluateMode = !testDataEvaluateMode; //true-false-true-false...
+#ifndef READ_gPE_FROM_FILE
       fill_n(testDataEvaluateModePExc, NExc, testDataEvaluateMode);
       fill_n(testDataEvaluateModeP2E, size_gP2E, testDataEvaluateMode);
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModePExc, testDataEvaluateModePExc, NExc * sizeof(bool), cudaMemcpyHostToDevice));
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModeP2E, testDataEvaluateModeP2E, size_gP2E * sizeof(bool), cudaMemcpyHostToDevice));
-      if (imageNum >= NUM_TRAINING_SL_INI)
-      {
-        fill_n(testDataEvaluateModePCla, NCla, testDataEvaluateMode);
-        fill_n(testDataEvaluateModeE2C, size_gE2C, testDataEvaluateMode);
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModePCla, testDataEvaluateModePCla, NCla * sizeof(bool), cudaMemcpyHostToDevice));
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModeE2C, testDataEvaluateModeE2C, size_gE2C * sizeof(bool), cudaMemcpyHostToDevice));
-      }
+#endif
+
+      fill_n(testDataEvaluateModePCla, NCla, testDataEvaluateMode);
+      fill_n(testDataEvaluateModeE2C, size_gE2C, testDataEvaluateMode);
+      CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModePCla, testDataEvaluateModePCla, NCla * sizeof(bool), cudaMemcpyHostToDevice));
+      CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModeE2C, testDataEvaluateModeE2C, size_gE2C * sizeof(bool), cudaMemcpyHostToDevice));
+
       if (!testDataEvaluateMode) //false时表示已经跑完测试集，true时刚开始要跑测试集
       {
         int offsetNow = 0;
@@ -301,7 +302,7 @@ int main()
     }
 #ifdef SPIKES_MONITOR
     if (write_spike_to_file(spikes_real_time, NExc, "spike.dat"))
-      spikes.update());
+      spikes.update();
     if (write_spike_to_file(cla_spikes_real_time, NCla, "cla_spike.dat"))
       Claspikes.update();
     spikes_real_time.assign(int(RUN_TIME / DT), vector<int>(NExc, 0)); //复位发放的神经元
@@ -357,13 +358,15 @@ int main()
         save_gP2E("gP2E" + fileid);
         save_gE2C("gE2C" + fileid);
         save_theta("theta" + fileid);
+        write_result_monitor_to_file(result_monitor);
 #ifdef PLOT_ON
         get_variance(variance, gP2E, NExc, NPoi, NORMAL);
         write_variance_to_file(variance, imageNum / UPDATE_INTERVAL);
         varianceP2E.update();
         varianceP2E_distribution.update();
 
-        get_variance(variance_E2C, gE2C, NExc, NCla, Cla_NORMAL);
+        // get_variance(variance_E2C, gE2C, NExc, NCla, Cla_NORMAL);
+        get_variance(variance_E2C, gE2C, NCla, NExc, Cla_NORMAL);
         write_variance_gEC_to_file(variance_E2C, imageNum / UPDATE_INTERVAL);
         varianceE2C.update();
         varianceE2C_distribution.update();
@@ -373,9 +376,9 @@ int main()
         get_visual_PEw(PEVisual);
         write_visual_PEw_to_file(PEVisual);
         PEw.update();
-        // get_visual_ECw(ECVisual);
-        // write_visual_ECw_to_file(ECVisual);
-        // ECw.update();
+        get_visual_ECw(ECVisual);
+        write_visual_ECw_to_file(ECVisual);
+        ECw.update();
 
         write_vector_to_file(response_rate, 60, "response_rate.dat");
         response_rates.update();
@@ -412,14 +415,15 @@ int main()
     get_visual_PEw(PEVisual);
     write_visual_PEw_to_file(PEVisual);
     PEw.update();
-    // get_visual_ECw(ECVisual);
-    // write_visual_ECw_to_file(ECVisual);
-    // ECw.update();
+    get_visual_ECw(ECVisual);
+    write_visual_ECw_to_file(ECVisual);
+    ECw.update();
     get_variance(variance, gP2E, NExc, NPoi, NORMAL);
     write_variance_to_file(variance, imageNum / UPDATE_INTERVAL);
     varianceP2E.update();
     varianceP2E_distribution.update();
-    get_variance(variance, gE2C, NExc, NCla, Cla_NORMAL);
+    // get_variance(variance, gE2C, NExc, NCla, Cla_NORMAL);
+    get_variance(variance_E2C, gE2C, NCla, NExc, Cla_NORMAL);
     write_variance_gEC_to_file(variance_E2C, imageNum / UPDATE_INTERVAL);
     varianceE2C.update();
     varianceE2C_distribution.update();
@@ -517,19 +521,19 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
   else if (DATA == "caltech/")
   {
     cout << "**********caltech101-resized-dog**********" << endl;
-    read_caltech("/home/hyz/Downloads/dataset/caltech101-resized-dog/", images, labels, images_test, labels_test);
+    // read_caltech("/home/hyz/Downloads/dataset/caltech101-resized-dog/", images, labels, images_test, labels_test);
   }
   else if (DATA == "fashion-mnist/")
   {
     cout << "**********fashion-mnist**********" << endl;
     if (DATASET_TRAIN)
     {
-      // read_mnist_images(path + "train-images-idx3-ubyte", images);
-      read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
+      read_mnist_images(path + "train-images-idx3-ubyte", images);
+      // read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
       read_mnist_label(path + "train-labels-idx1-ubyte", labels);
 
-      // read_mnist_images(path + "t10k-images-idx3-ubyte", images_test);
-      read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
+      read_mnist_images(path + "t10k-images-idx3-ubyte", images_test);
+      // read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
       read_mnist_label(path + "t10k-labels-idx1-ubyte", labels_test);
     }
     else
@@ -543,12 +547,12 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
     cout << "**********mnist**********" << endl;
     if (DATASET_TRAIN)
     {
-      // read_mnist_images(path + "train-images-idx3-ubyte", images);
-      read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
+      read_mnist_images(path + "train-images-idx3-ubyte_normalized", images);
+      // read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
       read_mnist_label(path + "train-labels-idx1-ubyte", labels);
 
-      // read_mnist_images(path + "t10k-images-idx3-ubyte", images_test);
-      read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
+      read_mnist_images(path + "t10k-images-idx3-ubyte_normalized", images_test);
+      // read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
       read_mnist_label(path + "t10k-labels-idx1-ubyte", labels_test);
     }
     else

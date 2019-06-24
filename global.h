@@ -4,9 +4,9 @@
 // #define TEST_MODE
 #define ID_DEVICE 0 //-1 // 选择GPU，-1表示AUTO_CHOOSE
 // #define FILE_RECODER
-// #define SPIKES_MONITOR
+#define SPIKES_MONITOR
 #define TRAIN_LAYER_BY_LAYER
-// #define READ_gPE_FROM_FILE
+#define READ_gPE_FROM_FILE
 // // #define SVM_TRAIN
 #define PLOT_ON
 
@@ -22,7 +22,7 @@
 // #define DATA "cifar10/"
 // #define GRAYSCALE true
 #define NPoi (WIDTH * HEIGHT)
-#define N_SQRT 10
+#define N_SQRT 20
 #define NExc (N_SQRT * N_SQRT)
 #define NExc_Sqrt N_SQRT
 #define NInh NExc

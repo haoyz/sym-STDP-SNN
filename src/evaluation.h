@@ -34,6 +34,8 @@ void write_visual_ECw_to_file(vector<vector<float>> tmp_visual);
 void get_visual_ECw_inferred(vector<vector<float>> &tmp_visual, vector<int> assignments);
 void write_visual_ECw_inferred_to_file(vector<vector<float>> tmp_visual);
 
+void write_result_monitor_to_file(vector<vector<int>> result_monitor);
+
 void get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval);
 void write_performance_to_file(vector<float> tmp_performance1, vector<float> tmp_performance2, int current_evaluation, int fileName);
 

@@ -40,6 +40,20 @@ double p_Exc[] = {
     Exc_Ttrace2,
     Exc_Ttrace,
 };
+double p_Exc_fixed[] = {
+    Exc_TV,
+    Exc_Vrest,
+    Exc_Vreset,
+    Exc_Vthresh,
+    Exc_Refrac,
+    Exc_test_mode,
+    1e10,
+    0,
+    Exc_offset,
+    Exc_Ttrace1,
+    Exc_Ttrace2,
+    Exc_Ttrace,
+};
 double ini_Inh[] = {
     Inh_V,
     Inh_timer,
@@ -215,14 +229,12 @@ void modelDefinition(NNmodel &model)
 
     int Poi = addNeuronModel_Poi(nModels);
     int LIF_Exc = addNeuronModel_LIF_Exc(nModels);
-    int LIF_Exc_fixed = addNeuronModel_LIF_Exc_fixed(nModels);
     int LIF_Inh = addNeuronModel_LIF_Inh(nModels);
     int LIF_Cla = addNeuronModel_LIF_Cla(nModels);
     int STDP = addSynapseModel(weightUpdateModels);
     int DA_STDP = addSynapseModel_DA_STDP(weightUpdateModels);
     int Sym_STDP = addSynapseModel_Sym_STDP(weightUpdateModels);
     int soft_STDP_bounds = addSynapseModel_soft_bounds(weightUpdateModels);
-    int fixed = addSynapse_fixed_Model(weightUpdateModels);
 
     model.setGPUDevice(ID_DEVICE); //选择GPU。在不进行GPU优化的前提下
     model.setDT(DT);
@@ -234,7 +246,7 @@ void modelDefinition(NNmodel &model)
 #ifndef READ_gPE_FROM_FILE
     model.addNeuronPopulation("PExc", NExc, LIF_Exc, p_Exc, ini_Exc);
 #else
-    model.addNeuronPopulation("PExc", NExc, LIF_Exc_fixed, p_Exc, ini_Exc);
+    model.addNeuronPopulation("PExc", NExc, LIF_Exc, p_Exc_fixed, ini_Exc);
 #endif
     model.addNeuronPopulation("PInh", NInh, LIF_Inh, p_Inh, ini_Inh); //GLOBALG
     model.addNeuronPopulation("PCla", NCla, LIF_Cla, p_Cla, ini_Cla);

@@ -15,10 +15,10 @@ float str2float(string s)
 void read_gP2E_from_file(float *tmp_gP2E)
 {
     string str_gP2E;
-    ifstream gP2E_file("./weights/gPE");
+    ifstream gP2E_file("./weights/gP2E");
     if (gP2E_file)
     {
-        cout << "Read from ./weights/gPE..." << endl;
+        cout << "Read from ./weights/gP2E..." << endl;
         for (int i = 0; i < NPoi; i++)
         {
             for (int j = 0; j < NExc; j++)
@@ -31,7 +31,7 @@ void read_gP2E_from_file(float *tmp_gP2E)
     }
     else
     {
-        cout << "open ./weights/gPE error!" << endl;
+        cout << "open ./weights/gP2E error!" << endl;
     }
 }
 void read_thetaPExc_from_file(float *tmp_thetaPExc)

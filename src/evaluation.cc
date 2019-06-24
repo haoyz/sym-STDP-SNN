@@ -594,12 +594,26 @@ void write_visual_ECw_inferred_to_file(vector<vector<float>> tmp_visual)
   }
   tmp_plot_file.close();
 }
+void write_result_monitor_to_file(vector<vector<int>> result_monitor)
+{
+  ofstream file("./output/result_monitor.dat", ios::trunc);
+  for (int i = 0; i < LABELS_CONST; i++)
+  {
+    for (int j = 0; j < NExc; j++)
+    {
+      file << i << " " << j << " " << result_monitor[i][j] << endl;
+    }
+    file << endl;
+  }
+  file << endl;
+  file.close();
+}
 void get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval)
 {
   int test_results[LABELS_CONST] = {-1};
   int difference = 0;
   int correct = 0;
-  char const *file_name = "./output/error_ID.dat";
+  char const *file_name = "./output/error_ID";
   ofstream tmp_errorID_file(file_name, ios::trunc);
   for (int i = 0; i < update_interval; i++) //计算assignments
   {
@@ -615,7 +629,7 @@ void get_performance(vector<float> &tmp_performance, int offset, int current_eva
       if (tmp_errorID_file)
         tmp_errorID_file << i << " " << labels[i + offset] << " " << test_results[i] << endl;
       else
-        cout << "error! Can't open ./output/error_ID.dat!" << endl;
+        cout << "error! Can't open ./output/error_ID!" << endl;
     }
   }
   tmp_errorID_file.close();
