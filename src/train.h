@@ -18,7 +18,7 @@ using namespace std;
 #define connN_I2E NInh *(NExc - 1) //一对多
 
 #define INPUT_INTENSITY_INIT 2
-#define Cla_INPUT_INTENSITY_INIT 0.1 //khz
+#define Cla_INPUT_INTENSITY_INIT 0.2 //khz
 
 #define LastTrain 0
 #define NowTrain 1

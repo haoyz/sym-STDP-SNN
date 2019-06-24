@@ -43,8 +43,8 @@
 #define Exc_Vthresh -52
 #define Exc_Refrac 2
 #define Exc_test_mode TEST_MODE_NEURON
-#define Exc_Ttheta 1e7 * 1.5
-#define Exc_theta_plus 0.05 * 1.8
+#define Exc_Ttheta 1e7 * 2
+#define Exc_theta_plus 0.05
 #define Exc_offset 20.0
 #define Exc_Ttrace1 20
 #define Exc_Ttrace2 40
@@ -130,8 +130,8 @@
 #define da_stdp_PE_g 0.1
 #define da_stdp_PE_testDataEvaluateMode testDataEvaluateModeInit
 
-#define da_stdp_PE_nu_ee_pre 0.01 * 2
-#define da_stdp_PE_nu_ee_post 0.01 * 2
+#define da_stdp_PE_nu_ee_pre 0.01 * 0.75
+#define da_stdp_PE_nu_ee_post 0.01 * 0.75
 #define da_stdp_PE_g_min 0
 #define da_stdp_PE_g_max gPE_MAX
 #define da_stdp_PE_a_plus 0.1
@@ -140,8 +140,8 @@
 #define da_stdp_EC_g 0.1
 #define da_stdp_EC_testDataEvaluateMode testDataEvaluateModeInit
 
-#define da_stdp_EC_nu_ee_pre 0.01 * 8
-#define da_stdp_EC_nu_ee_post 0.01 * 8
+#define da_stdp_EC_nu_ee_pre 0.01 * 4
+#define da_stdp_EC_nu_ee_post 0.01 * 4
 #define da_stdp_EC_g_min 0
 #define da_stdp_EC_g_max gEC_MAX
 #define da_stdp_EC_a_plus 0.1

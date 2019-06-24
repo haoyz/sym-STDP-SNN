@@ -17,8 +17,8 @@ using namespace std;
 void normalize_weights(float *tmp_gP2E);
 void cla_normalize_weights(float *tmp_gE2C);
 
-int get_recognized_number(vector<int> spike_record, vector<int> assignments);                                             //每个样本，每个神经元的发放次数
-void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int>> result_monitor, vector<float> labels); //result_monitor每个神经元对每个样本的激发次数
+int get_recognized_number(vector<int> spike_record, vector<int> assignments);                                 //每个样本，每个神经元的发放次数
+void get_new_assignments(vector<int> &assignments, vector<vector<int>> result_monitor, vector<float> labels); //result_monitor每个神经元对每个样本的激发次数
 
 bool whether_evaluation_or_not(vector<int> assignments);
 
@@ -36,16 +36,16 @@ void write_visual_ECw_inferred_to_file(vector<vector<float>> tmp_visual);
 
 void write_result_monitor_to_file(vector<vector<int>> result_monitor);
 
-void get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval);
+void get_performance(vector<float> &tmp_performance, int current_evaluation, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels);
 void write_performance_to_file(vector<float> tmp_performance1, vector<float> tmp_performance2, int current_evaluation, int fileName);
 
-void cla_get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> cla_result_monitor, vector<float> labels, int update_interval);
+void cla_get_performance(vector<float> &tmp_performance, int current_evaluation, vector<vector<int>> cla_result_monitor, vector<float> labels);
 
 void get_spike_rate(float spike_rate[3], vector<vector<int>> result_monitor_last1000, vector<int> assignments, vector<float> &labels);
 void write_spike_rate_to_file(float spike_rate[3]);
 
-void get_confusion_m(vector<vector<float>> &confusion_m, int offset, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval);
-void get_confusion_m_supervised(vector<vector<float>> &confusion_m, int offset, vector<vector<int>> cla_result_monitor, vector<float> labels, int update_interval);
+void get_confusion_m(vector<vector<float>> &confusion_m, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels);
+void get_confusion_m_supervised(vector<vector<float>> &confusion_m, vector<vector<int>> cla_result_monitor, vector<float> labels);
 void write_confusion_m_to_file(vector<vector<float>> confusion_m, int flag);
 
 void get_variance(vector<float> &variance, float *g, int dimen, int dimen1, float normal);

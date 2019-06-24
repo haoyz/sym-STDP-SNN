@@ -49,10 +49,11 @@ int main()
 
   vector<int> assignments(NExc, -1); //assign labels to each neuron using assignments
   vector<int> assignments_dist(NUM_CLASS, 0);
-  vector<int> assignmentsTestDataSet(NExc, -1);
-  vector<int> assignmentsTestDataSet_dist(NUM_CLASS, 0);
-  vector<vector<int>> result_monitor(LABELS_CONST, vector<int>(NExc, 0)); //所有样本的spike_record
-  vector<vector<int>> cla_result_monitor(LABELS_CONST, vector<int>(NCla, 0));
+  // vector<int> assignmentsTestDataSet(NExc, -1);
+  // vector<int> assignmentsTestDataSet_dist(NUM_CLASS, 0);
+  vector<vector<int>> test_result_monitor(NUM_TEST_SAMPLES, vector<int>(NExc, 0));   //测试集样本的spike_record
+  vector<vector<int>> train_result_monitor(NUM_TRAIN_SAMPLES, vector<int>(NExc, 0)); //训练集样本的spike_record
+  vector<vector<int>> cla_result_monitor(NUM_TEST_SAMPLES, vector<int>(NCla, 0));
   vector<int> spike_record(NExc, 0); //单个样本，NExc神经元响应
   vector<int> cla_spike_record(NCla, 0);
   // ------------------------------------------------------------------------------
@@ -182,11 +183,14 @@ int main()
   // ------------------------------------------------------------------------------
   imageNum = 0;
   bool testDataEvaluateMode = true; // false;
+  bool test_begin;
   while (imageNum < NUM_SAMPLES)
   {
     //imageNum集中更新
     static bool testDataStartOnce = true;
-    if (testDataStartOnce || (((testDataEvaluateMode == false && imageNum % UPDATE_INTERVAL == 0) || (testDataEvaluateMode == true && imageNum % EVALUATION_INTERVAL == 0)) && (sum_glbSpkCntPExc >= NUM_SPIKE_RESP || input_intensity >= 32)))
+    // test_begin = (imageNum <= 600000 && imageNum % NUM_TRAIN_SAMPLES == 0) || (imageNum > 600000 && imageNum % UPDATE_INTERVAL == 0);
+    test_begin = (imageNum <= 11 * NUM_TRAIN_SAMPLES && imageNum % NUM_TRAIN_SAMPLES == 0) || (imageNum > 11 * NUM_TRAIN_SAMPLES && imageNum % UPDATE_INTERVAL == 0);
+    if (testDataStartOnce || (((testDataEvaluateMode == false && test_begin) || (testDataEvaluateMode == true && imageNum % EVALUATION_INTERVAL == 0)) && (sum_glbSpkCntPExc >= NUM_SPIKE_RESP || input_intensity >= 32)))
     {
       testDataStartOnce = false;
       testDataEvaluateMode = !testDataEvaluateMode; //true-false-true-false...
@@ -204,21 +208,20 @@ int main()
 
       if (!testDataEvaluateMode) //false时表示已经跑完测试集，true时刚开始要跑测试集
       {
-        int offsetNow = 0;
         static int current_evaluationNow = 0;
         cout << "\nEvaluating with TestDataSet after trained " << current_evaluationNow * UPDATE_INTERVAL << " samples" << endl;
-        get_new_assignments(assignmentsTestDataSet, offsetNow, result_monitor, labels_test); //result_monitor:所有样本的spike_record
-        get_assignments_distribution(assignmentsTestDataSet, assignmentsTestDataSet_dist);
-        write_assignments_distribution_to_file(assignmentsTestDataSet_dist);
+        get_new_assignments(assignments, train_result_monitor, labels); //训练集所有样本的spike_record
+        get_assignments_distribution(assignments, assignments_dist);
+        write_assignments_distribution_to_file(assignments_dist);
 
-        get_performance(performanceNowUseTestData, offsetNow, current_evaluationNow, result_monitor, assignmentsTestDataSet, labels_test, UPDATE_INTERVAL);
-        cla_get_performance(cla_performanceNowUseTestData, offsetNow, current_evaluationNow, cla_result_monitor, labels_test, UPDATE_INTERVAL);
-        write_performance_to_file(performanceNowUseTestData, cla_performanceNowUseTestData, current_evaluationNow, NowTest);
+        get_performance(performance, current_evaluationNow, test_result_monitor, assignments, labels_test);
+        cla_get_performance(cla_performance, current_evaluationNow, cla_result_monitor, labels_test);
+        write_performance_to_file(performance, cla_performance, current_evaluationNow, NowTest);
 
-        get_confusion_m(confusion_m, offsetNow, result_monitor, assignmentsTestDataSet, labels_test, UPDATE_INTERVAL);
+        get_confusion_m(confusion_m, test_result_monitor, assignments, labels_test);
         write_confusion_m_to_file(confusion_m, UNSUPERVISED);
 
-        get_confusion_m_supervised(confusion_m_supervised, offsetNow, cla_result_monitor, labels_test, UPDATE_INTERVAL);
+        get_confusion_m_supervised(confusion_m_supervised, cla_result_monitor, labels_test);
         write_confusion_m_to_file(confusion_m_supervised, SUPERVISED);
 
 #ifdef PLOT_ON
@@ -331,8 +334,13 @@ int main()
       {
         cout << "imageNum without " << NUM_SPIKE_RESP << "-spike-response: " << (imageNum + 1) << endl;
       }
-      result_monitor[imageNum % UPDATE_INTERVAL].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
-      cla_result_monitor[imageNum % UPDATE_INTERVAL].assign(cla_spike_record.begin(), cla_spike_record.end());
+      if (!testDataEvaluateMode)
+        train_result_monitor[imageNum % NUM_TRAIN_SAMPLES].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
+      else
+      {
+        test_result_monitor[imageNum % NUM_TEST_SAMPLES].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
+        cla_result_monitor[imageNum % NUM_TEST_SAMPLES].assign(cla_spike_record.begin(), cla_spike_record.end());
+      }
       if ((imageNum + 1) % 100 == 0 && imageNum > 0) //显示而已
       {
         if (!testDataEvaluateMode)
@@ -358,7 +366,7 @@ int main()
         save_gP2E("gP2E" + fileid);
         save_gE2C("gE2C" + fileid);
         save_theta("theta" + fileid);
-        write_result_monitor_to_file(result_monitor);
+        // write_result_monitor_to_file(test_result_monitor);
 #ifdef PLOT_ON
         get_variance(variance, gP2E, NExc, NPoi, NORMAL);
         write_variance_to_file(variance, imageNum / UPDATE_INTERVAL);
@@ -528,11 +536,11 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
     cout << "**********fashion-mnist**********" << endl;
     if (DATASET_TRAIN)
     {
-      read_mnist_images(path + "train-images-idx3-ubyte", images);
+      read_mnist_images(path + "train-images-idx3-ubyte_normalized_to30", images);
       // read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
       read_mnist_label(path + "train-labels-idx1-ubyte", labels);
 
-      read_mnist_images(path + "t10k-images-idx3-ubyte", images_test);
+      read_mnist_images(path + "t10k-images-idx3-ubyte_normalized_to30", images_test);
       // read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
       read_mnist_label(path + "t10k-labels-idx1-ubyte", labels_test);
     }
@@ -547,11 +555,11 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
     cout << "**********mnist**********" << endl;
     if (DATASET_TRAIN)
     {
-      read_mnist_images(path + "train-images-idx3-ubyte_normalized", images);
+      read_mnist_images(path + "train-images-idx3-ubyte", images);
       // read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
       read_mnist_label(path + "train-labels-idx1-ubyte", labels);
 
-      read_mnist_images(path + "t10k-images-idx3-ubyte_normalized", images_test);
+      read_mnist_images(path + "t10k-images-idx3-ubyte", images_test);
       // read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
       read_mnist_label(path + "t10k-labels-idx1-ubyte", labels_test);
     }

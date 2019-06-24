@@ -170,38 +170,38 @@ int cla_get_recognized_number(vector<int> spike_record) //每个样本，每个�
 // ------------------------------------------------------------------------------
 //  准确率计数// 注意形参
 // ------------------------------------------------------------------------------
-void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int>> result_monitor, vector<float> labels) //result_monitor每个神经元对每个样本的激发次数
+void get_new_assignments(vector<int> &assignments, vector<vector<int>> train_result_monitor, vector<float> labels) //result_monitor每个神经元对每个样本的激发次数
 {
   int num_assignments[10] = {0};
   float rate_sum[NExc][10] = {0};
   float maximum_rate = 0;
-  for (int i = 0; i < LABELS_CONST; i++)
+  for (int i = 0; i < NUM_TRAIN_SAMPLES; i++)
   {
     for (int j = 0; j < 10; j++) //测试集中每个数字各有多少个。十维
     {
-      if (labels[i + offset] == j)
+      if (labels[i] == j)
       {
         num_assignments[j]++;
         j = 9;
       }
     }
   }
-  for (int i = 0; i < LABELS_CONST; i++)
+  for (int i = 0; i < NUM_TRAIN_SAMPLES; i++)
   {
     for (int k = 0; k < 10; k++)
     {
-      if (labels[i + offset] == k)
+      if (labels[i] == k)
       {
         for (int j = 0; j < NExc; j++)
         {
-          rate_sum[j][k] += result_monitor[i][j]; //测试集中每个样本，每个数字发放次数分别求和
+          rate_sum[j][k] += train_result_monitor[i][j]; //测试集中每个样本，每个数字发放次数分别求和
         }
         k = 9; // 进入一次就可以跳出k的循环了
       }
     }
   }
-  // cout << "测试集" << LABELS_CONST << "*" << NExc << "矩阵:" << endl;
-  // for (int i = 0; i < LABELS_CONST; i++)
+  // cout << "测试集" << NUM_TEST_SAMPLES << "*" << NExc << "矩阵:" << endl;
+  // for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   // {
   //   for (int j = 0; j < NExc; j++)
   //   {
@@ -272,11 +272,11 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //   {
 //     max = 0;
 //     sum = 0;
-//     for (int i = 0; i < LABELS_CONST; i++)
+//     for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //     {
 //       sum += result_monitor[i][j];
 //     }
-//     for (int i = 0; i < LABELS_CONST; i++)
+//     for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //     {
 //       if (result_monitor[i][j] > max)
 //       {
@@ -285,7 +285,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //     max = 0;
-//     for (int i = 0; i < LABELS_CONST; i++)
+//     for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //     {
 //       if (result_monitor[i][j] > max && rate_sum[j][0] != i)
 //       {
@@ -294,7 +294,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //     max = 0;
-//     for (int i = 0; i < LABELS_CONST; i++)
+//     for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //     {
 //       if (result_monitor[i][j] > max && rate_sum[j][0] != i && rate_sum[j][1] != i)
 //       {
@@ -303,7 +303,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //     max = 0;
-//     for (int i = 0; i < LABELS_CONST; i++)
+//     for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //     {
 //       if (result_monitor[i][j] > max && rate_sum[j][0] != i && rate_sum[j][1] != i && rate_sum[j][2] != i)
 //       {
@@ -356,7 +356,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //   int assignments3[NExc] = {0};
 //   float sum = 0;
 //   int tmp, tmp2, tmp3;
-//   for (int i = 0; i < LABELS_CONST; i++)
+//   for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //   {
 //     for (int j = 0; j < 10; j++) //测试集中每个数字各有多少个。十维
 //     {
@@ -367,7 +367,7 @@ void get_new_assignments(vector<int> &assignments, int offset, vector<vector<int
 //       }
 //     }
 //   }
-//   for (int i = 0; i < LABELS_CONST; i++)
+//   for (int i = 0; i < NUM_TEST_SAMPLES; i++)
 //   {
 //     for (int k = 0; k < 10; k++)
 //     {
@@ -597,7 +597,7 @@ void write_visual_ECw_inferred_to_file(vector<vector<float>> tmp_visual)
 void write_result_monitor_to_file(vector<vector<int>> result_monitor)
 {
   ofstream file("./output/result_monitor.dat", ios::trunc);
-  for (int i = 0; i < LABELS_CONST; i++)
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   {
     for (int j = 0; j < NExc; j++)
     {
@@ -608,32 +608,32 @@ void write_result_monitor_to_file(vector<vector<int>> result_monitor)
   file << endl;
   file.close();
 }
-void get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval)
+void get_performance(vector<float> &tmp_performance, int current_evaluation, vector<vector<int>> test_result_monitor, vector<int> assignments, vector<float> labels)
 {
-  int test_results[LABELS_CONST] = {-1};
+  int test_results[NUM_TEST_SAMPLES] = {-1};
   int difference = 0;
   int correct = 0;
-  char const *file_name = "./output/error_ID";
+  char const *file_name = "./output/error_ID.dat";
   ofstream tmp_errorID_file(file_name, ios::trunc);
-  for (int i = 0; i < update_interval; i++) //计算assignments
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++) //计算assignments
   {
-    test_results[i] = get_recognized_number(result_monitor[i], assignments); //result_monitor[i]单个样本，NExc神经元各自发放数                                                                             //todo rate->test_results.降序排列，rate[9]最大
+    test_results[i] = get_recognized_number(test_result_monitor[i], assignments); //test_result_monitor[i]单个样本，NExc神经元各自发放数                                                                             //todo rate->test_results.降序排列，rate[9]最大
   }
-  for (int i = 0; i < update_interval; i++)
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   {
-    difference = test_results[i] - labels[i + offset];
+    difference = test_results[i] - labels[i];
     if (difference < 1 && difference > -1)
       correct++;
     else
     {
       if (tmp_errorID_file)
-        tmp_errorID_file << i << " " << labels[i + offset] << " " << test_results[i] << endl;
+        tmp_errorID_file << i << " " << labels[i] << " " << test_results[i] << endl;
       else
-        cout << "error! Can't open ./output/error_ID!" << endl;
+        cout << "error! Can't open ./output/error_ID.dat!" << endl;
     }
   }
   tmp_errorID_file.close();
-  float sum_accurracy = correct / (float)update_interval * 100.0;
+  float sum_accurracy = correct / (float)NUM_TEST_SAMPLES * 100.0;
   fprintf(stdout, "usl accuracy: %f%%  correct:%d\n", sum_accurracy, correct);
   tmp_performance[current_evaluation] = sum_accurracy;
 }
@@ -671,22 +671,22 @@ void write_performance_to_file(vector<float> tmp_performance1, vector<float> tmp
   }
 }
 
-void cla_get_performance(vector<float> &tmp_performance, int offset, int current_evaluation, vector<vector<int>> cla_result_monitor, vector<float> labels, int update_interval)
+void cla_get_performance(vector<float> &tmp_performance, int current_evaluation, vector<vector<int>> cla_result_monitor, vector<float> labels)
 {
-  int test_results[LABELS_CONST] = {-1};
+  int test_results[NUM_TEST_SAMPLES] = {-1};
   int difference = 0;
   int correct = 0;
-  for (int i = 0; i < update_interval; i++) //计算assignments
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++) //计算assignments
   {
     test_results[i] = cla_get_recognized_number(cla_result_monitor[i]); //todo rate->test_results.降序排列，rate[9]最大
   }
-  for (int i = 0; i < update_interval; i++)
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   {
-    difference = test_results[i] - labels[i + offset];
+    difference = test_results[i] - labels[i];
     if (difference < 1 && difference > -1)
       correct++;
   }
-  float sum_accurracy = correct / (float)update_interval * 100.0;
+  float sum_accurracy = correct / (float)NUM_TEST_SAMPLES * 100.0;
   fprintf(stdout, "sl accuracy: %f%%  correct:%d\n", sum_accurracy, correct);
   tmp_performance[current_evaluation] = sum_accurracy;
 }
@@ -708,34 +708,34 @@ void get_spike_rate(float spike_rate[3], int offset, vector<vector<int>> result_
 void write_spike_rate_to_file(float spike_rate[3])
 {
 }
-void get_confusion_m(vector<vector<float>> &confusion_m, int offset, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels, int update_interval)
+void get_confusion_m(vector<vector<float>> &confusion_m, vector<vector<int>> result_monitor, vector<int> assignments, vector<float> labels)
 {
-  int test_results[LABELS_CONST] = {-1};
+  int test_results[NUM_TEST_SAMPLES] = {-1};
   int x_i, y_j;
   confusion_m.assign(11, vector<float>(11, 0));
-  for (int i = 0; i < update_interval; i++) //计算assignments
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++) //计算assignments
   {
     test_results[i] = get_recognized_number(result_monitor[i], assignments); //result_monitor[i]单个样本，NExc神经元各自发放数                                                                             //todo rate->test_results.降序排列，rate[9]最大
   }
-  for (int i = 0; i < update_interval; i++)
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   {
-    x_i = labels[i + offset] + 1;
+    x_i = labels[i] + 1;
     y_j = test_results[i] + 1;
     confusion_m[x_i][y_j]++;
   }
 }
-void get_confusion_m_supervised(vector<vector<float>> &confusion_m, int offset, vector<vector<int>> cla_result_monitor, vector<float> labels, int update_interval)
+void get_confusion_m_supervised(vector<vector<float>> &confusion_m, vector<vector<int>> cla_result_monitor, vector<float> labels)
 {
-  int test_results[LABELS_CONST] = {-1};
+  int test_results[NUM_TEST_SAMPLES] = {-1};
   int x_i, y_j;
   confusion_m.assign(11, vector<float>(11, 0));
-  for (int i = 0; i < update_interval; i++)
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   {
     test_results[i] = cla_get_recognized_number(cla_result_monitor[i]); //cla_result_monitor[i]单个样本，NExc神经元各自发放数                                                                             //todo rate->test_results.降序排列，rate[9]最大
   }
-  for (int i = 0; i < update_interval; i++)
+  for (int i = 0; i < NUM_TEST_SAMPLES; i++)
   {
-    x_i = labels[i + offset] + 1;
+    x_i = labels[i] + 1;
     y_j = test_results[i] + 1;
     confusion_m[x_i][y_j]++;
   }
