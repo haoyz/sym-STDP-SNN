@@ -3,8 +3,6 @@
 #include "model.h"
 #include <iostream>
 using namespace std;
-//甚至plot类应该这样设计：初始化一个数组来做构造函数，然后update即可。不要把gnuplot完成的命令拆分开挑出不同做参数，相同做构造函数。拆分是为了减少重复但。
-//其实所谓的设计curve，image，等类，就是一组初始化参数不同而已。
 Drafting::~Drafting()
 {
     gnuplot.~GNUplot();
@@ -30,7 +28,7 @@ vector<string> init_assign_dist{
     "set style fill solid 0.4 border",
 };
 vector<string> plot_assign_dist{
-    "set output \"./output/assign_dist.png\"", //否则不work，set output时会把原来的图片消除。
+    "set output \"./output/assign_dist.png\"", 
     "plot \"./output/assign_dist.dat\" u 2:xticlabels(1) ",
 };
 vector<string> init_PEw{
@@ -69,8 +67,7 @@ vector<string> init_varianceP2E{
     "set terminal png",
     "set xlabel \"number of samples\"",
     "set ylabel \"variance\"",
-    "set xrange [0:" + to_string(UPDATE_TOTAL) + "]", //可能并不是间隔1w计算一次，而是1k
-    // "set yrange [0:100]",//这种变化就让gnuplot自己完成吧
+    "set xrange [0:" + to_string(UPDATE_TOTAL) + "]", 
     "set grid",
 };
 vector<string> plot_varianceP2E{
@@ -99,7 +96,6 @@ vector<string> init_varianceE2C{
     "set xlabel \"number of samples\"",
     "set ylabel \"variance E2C\"",
     "set xrange [0:" + to_string(UPDATE_TOTAL) + "]",
-    // "set yrange [0:100]", //这种变化就让gnuplot自己完成吧
     "set grid",
 };
 vector<string> plot_varianceE2C{
@@ -122,13 +118,12 @@ vector<string> plot_varianceE2C_distribution{
     "plot \"./output/var_E2C_dist.dat\" u 2:xticlabels(nth(1,1,10)) ",
 };
 vector<string> init_performance{
-    //其实现在要想做plot_perNowUseTestData，plot_perNowUseTrainData，plot_per等只需要定义三个drafting即可。重复的只有参数，代码重用比较好
     "set size ratio 0.5",
     "set title \"Classification Performance\"",
     "set xlabel \"number of samples\"",
     "set ylabel \"accuracy(%)\"",
     "set terminal png size 640,480",
-    "set xrange [0:" + to_string(UPDATE_TOTAL) + "]", //怎么格式化做一个string
+    "set xrange [0:" + to_string(UPDATE_TOTAL) + "]", 
     "set yrange [0:100]",
     "set xtics 0,6," + to_string(UPDATE_TOTAL),
     "set ytics 0,5,100",
@@ -199,7 +194,6 @@ vector<string> init_response_rates{
     "set title \"Response Rate\"",
     "set xlabel \"response rates\"",
     "set ylabel \"count\"",
-    // "set xtics 0,5,60",//无效
     "set style data histogram",
     "set style histogram clustered gap 1",
     "set style fill solid 0.4 border",
@@ -217,7 +211,6 @@ vector<string> init_theta{
     "set title \"theta\"",
     "set xlabel \"theta\"",
     "set ylabel \"count\"",
-    // "set bmargin 20",//无效
     "set style data histogram",
     "set style histogram clustered gap 1",
     "set style fill solid 0.4 border",
@@ -227,11 +220,6 @@ vector<string> plot_theta{
     "set output \"./output/theta.png\"",
     "plot \"./output/theta.dat\" u 2:xticlabels(nth(1,1,10))",
 };
-
-// nth(countCol,labelCol,n) = ((int(column(countCol)) % n == 0) ? stringcolumn(labelCol) : "")
-// set output "out.png"
-// plot "in.dat" using 1:2:xtic(nth(1,3,10)) with linespoints pointtype 2 linecolor rgb "red"
-
 bool replace(std::string &str, const std::string &from, const std::string &to)
 {
     size_t start_pos = str.find(from);

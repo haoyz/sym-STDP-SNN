@@ -1,5 +1,5 @@
 #include "mnist.h"
-int ReverseInt(int i) //大端小端。int确定四字节？
+int ReverseInt(int i) 
 {
   unsigned char ch1, ch2, ch3, ch4;
   ch1 = i & 255;

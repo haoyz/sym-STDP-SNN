@@ -1,7 +1,4 @@
 function create_normalized_mnist(filename, normalization)
-% filename
-% /home/hyz/Downloads/dataset/fashion-mnist/t10k-images-idx3-ubyte
-% /home/hyz/Downloads/dataset/fashion-mnist/train-images-idx3-ubyte
 % read mnist
 fp = fopen(filename, 'r+');
 assert(fp ~= -1, ['Could not open ', filename, '']);
@@ -16,9 +13,7 @@ numCols = fread(fp, 1, 'int32', 0, 'ieee-be');
 images = fread(fp, inf, 'uint8');
 fclose(fp);
 
-% DoG filter
 images = reshape(images, numCols, numRows, numImages);
-image_mean=mean(images(:));
 
 images_processed = zeros(size(images));
 

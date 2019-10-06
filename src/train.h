@@ -4,18 +4,18 @@
 #include "gnuplot.h"
 #include "model.h"
 #include "../global.h"
-#include <stddef.h> //vscode下必须有
+#include <stddef.h> 
 #include <vector>
 using namespace std;
 
-#define N_rand 256 //精度
+#define N_rand 256
 
 #define preN_EI NExc
 #define postN_EI NInh
 #define preN_IE NInh
 #define postN_IE NExc
-#define connN_E2I NExc             //一对一
-#define connN_I2E NInh *(NExc - 1) //一对多
+#define connN_E2I NExc 
+#define connN_I2E NInh *(NExc - 1) 
 
 #define INPUT_INTENSITY_INIT 2
 #define Cla_INPUT_INTENSITY_INIT 0.2 //khz
@@ -27,7 +27,7 @@ using namespace std;
 
 extern long int imageNum;
 // ------------------------------------------------------------------------------
-//  可视化突触权重
+//  visualization
 // ------------------------------------------------------------------------------
 vector<vector<float>> PEVisual(WIDTH *NExc_Sqrt, vector<float>(HEIGHT *NExc_Sqrt));
 vector<vector<float>> ECVisual(ECw_X, vector<float>(ECw_Y));

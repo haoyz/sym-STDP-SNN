@@ -60,7 +60,7 @@
         int j_v = 0;                                                                                              \
         for (int i = 0; i < NExc; i++)                                                                            \
         {                                                                                                         \
-          i_v = (i / NExc_Sqrt) * WIDTH;//怎么排由我决定，认为一列一列排，i是列数，j是行数 \
+          i_v = (i / NExc_Sqrt) * WIDTH; \
           j_v = (i % NExc_Sqrt) * HEIGHT;                                                                         \
           for (int j = 0; j < NPoi; j++)                                                                          \
           {                                                                                                       \

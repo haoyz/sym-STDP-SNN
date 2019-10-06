@@ -2,7 +2,7 @@
 #define _GNUPLOT_H_
 
 #include <string>
-#include <stdio.h> //FILE*需要
+#include <stdio.h> 
 #include <vector>
 using namespace std;
 

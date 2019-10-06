@@ -7,7 +7,7 @@
 #include <vector>
 using namespace std;
 
-int ReverseInt(int i); //大端小端。int确定四字节？
+int ReverseInt(int i); 
 void read_mnist_label(string filename, vector<float> &labels);
 void read_mnist_images(string filename, vector<vector<float>> &images);
 

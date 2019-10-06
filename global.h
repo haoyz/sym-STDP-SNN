@@ -2,27 +2,40 @@
 #define _GLOBAL_H_
 
 // #define TEST_MODE
-#define ID_DEVICE 0 //-1 // 选择GPU，-1表示AUTO_CHOOSE
+#define ID_DEVICE 0 //-1 // choose GPU. '-1' represents 'AUTO_CHOOSE'
 // #define FILE_RECODER
 // #define SPIKES_MONITOR
 #define TRAIN_LAYER_BY_LAYER
-// #define READ_gPE_FROM_FILE
+#define READ_gPE_FROM_FILE
 // // #define SVM_TRAIN
 #define PLOT_ON
 
-// #define DATA "caltech/"
-// #define WIDTH 240
-// #define HEIGHT 160
-// #define NUM_CLASS 2
+/***setting for mnist***/
 #define DATA "mnist/"
+/***setting for fashion-mnist***/
 // #define DATA "fashion-mnist/"
+
 #define WIDTH 28
 #define HEIGHT 28
 #define NUM_CLASS 10
-// #define DATA "cifar10/"
-// #define GRAYSCALE true
+
 #define NPoi (WIDTH * HEIGHT)
-#define N_SQRT 100
+
+/***parameters of 10000 excitatory neurons for mnist***/
+// #define N_SQRT 100
+/***parameters of 6400 excitatory neurons for mnist***/
+// #define N_SQRT 80
+/***parameters of 1600 excitatory neurons for mnist***/
+// #define N_SQRT 40
+/***parameters of 400 excitatory neurons for mnist***/
+#define N_SQRT 20
+/***parameters of 100 excitatory neurons for mnist***/
+// #define N_SQRT 10
+/***parameters of 6400 excitatory neurons for fashion-mnist***/
+// #define N_SQRT 80
+/***parameters of 400 excitatory neurons for fashion-mnist***/
+// #define N_SQRT 20
+
 #define NExc (N_SQRT * N_SQRT)
 #define NExc_Sqrt N_SQRT
 #define NInh NExc
@@ -37,10 +50,8 @@
 #define NUM_TRAIN_SAMPLES 60000
 #define NUM_TEST_SAMPLES 10000
 #define NUM_SAMPLES 60000 * 20
-#define UPDATE_INTERVAL 10000 //有时候想自动化结果反而困难了
+#define UPDATE_INTERVAL 10000 
 #define EVALUATION_INTERVAL 10000
-// #define UPDATE_INTERVAL NUM_TRAIN_SAMPLES
-// #define EVALUATION_INTERVAL NUM_TEST_SAMPLES
 #define UPDATE_TOTAL (NUM_SAMPLES / UPDATE_INTERVAL)
 #define TEST_MODE_NEURON 0
 #define DATASET_TRAIN 1

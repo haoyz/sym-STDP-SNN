@@ -17,8 +17,8 @@ using namespace std;
 void normalize_weights(float *tmp_gP2E);
 void cla_normalize_weights(float *tmp_gE2C);
 
-int get_recognized_number(vector<int> spike_record, vector<int> assignments);                                 //每个样本，每个神经元的发放次数
-void get_new_assignments(vector<int> &assignments, vector<vector<int>> result_monitor, vector<float> labels); //result_monitor每个神经元对每个样本的激发次数
+int get_recognized_number(vector<int> spike_record, vector<int> assignments);                                 
+void get_new_assignments(vector<int> &assignments, vector<vector<int>> result_monitor, vector<float> labels); 
 
 bool whether_evaluation_or_not(vector<int> assignments);
 

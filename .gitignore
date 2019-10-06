@@ -17,3 +17,5 @@ no-*
 weights
 output*
 dataset
+data/mnist
+data/fashion-mnist

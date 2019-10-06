@@ -1,8 +1,6 @@
 #include "train.h"
 #include "model.h"
-// #include "reader/caltech/caltech.h"
 #include "reader/mnist/mnist.h"
-#include "reader/cifar10/cifar10.h"
 #include "gnuplot.h"
 #include "drafting.h"
 #include "file_recorder.h"
@@ -26,7 +24,7 @@ using namespace std;
 
 long int imageNum;
 long int imageNum_train;
-string path = "../../Downloads/dataset/" + string(DATA);
+string datapath = "data/" + string(DATA);
 
 int main()
 {
@@ -37,8 +35,6 @@ int main()
   allocateE2I(connN_E2I);
   allocateI2E(connN_I2E);
   initialize();
-  //void initModel();//Called after initializing the weight, otherwise it is not copied to the GPU.
-  //initializeAllSparseArrays();//This function itself tells the user to initialize and then copy. Did not find the implementation of the initializeSparseArray function
 
   //------------------------------------------------------------------------------
   // set parameters and equations
@@ -51,10 +47,10 @@ int main()
   vector<int> assignments_dist(NUM_CLASS, 0);
   // vector<int> assignmentsTestDataSet(NExc, -1);
   // vector<int> assignmentsTestDataSet_dist(NUM_CLASS, 0);
-  vector<vector<int>> test_result_monitor(NUM_TEST_SAMPLES, vector<int>(NExc, 0));   //测试集样本的spike_record
-  vector<vector<int>> train_result_monitor(NUM_TRAIN_SAMPLES, vector<int>(NExc, 0)); //训练集样本的spike_record
+  vector<vector<int>> test_result_monitor(NUM_TEST_SAMPLES, vector<int>(NExc, 0));   
+  vector<vector<int>> train_result_monitor(NUM_TRAIN_SAMPLES, vector<int>(NExc, 0)); 
   vector<vector<int>> cla_result_monitor(NUM_TEST_SAMPLES, vector<int>(NCla, 0));
-  vector<int> spike_record(NExc, 0); //单个样本，NExc神经元响应
+  vector<int> spike_record(NExc, 0); 
   vector<int> cla_spike_record(NCla, 0);
   // ------------------------------------------------------------------------------
   //  load dataset
@@ -63,9 +59,9 @@ int main()
   vector<float> labels;
   vector<vector<float>> images_test;
   vector<float> labels_test;
-  clock_t start; //clock()返回长整形数
+  clock_t start; 
   clock_t end;
-  get_inputdata(path, images, labels, images_test, labels_test);
+  get_inputdata(datapath, images, labels, images_test, labels_test);
   if (images.size() == labels.size() && images_test.size() == labels_test.size())
   {
     num_train_samples = images.size();
@@ -76,18 +72,18 @@ int main()
     exit(1);
 
   // ------------------------------------------------------------------------------
-  //  准备输入图像
+  //  input images initialization
   // ------------------------------------------------------------------------------
-  float input_intensity = INPUT_INTENSITY_INIT; //输入强度，256/8*input_intensity
+  float input_intensity = INPUT_INTENSITY_INIT; // 256.0 / 8 * input_intensity
   vector<float> FR_khz(NPoi, 0);
-  uint64_t *CPUratesPPoi = new uint64_t[NPoi]; //genn要求手动给ratesPPoi分配内存
+  uint64_t *CPUratesPPoi = new uint64_t[NPoi]; // required by genn
   CHECK_CUDA_ERRORS(cudaMalloc((void **)&ratesPPoi, NPoi * sizeof(uint64_t)));
   CHECK_CUDA_ERRORS(cudaMemcpy(ratesPPoi, CPUratesPPoi, NPoi * sizeof(uint64_t), cudaMemcpyHostToDevice));
   //cudaHostAlloc(&CPUratesPPoi, 1 * sizeof(unsigned int), cudaHostAllocPortable);
   //deviceMemAllocate(&d_glbSpkCntPPoi, dd_glbSpkCntPPoi, 1 * sizeof(unsigned int));
 
   // ------------------------------------------------------------------------------
-  //  准备分类层
+  //  supervision layer initialization
   // ------------------------------------------------------------------------------
   float cla_input_intensity = Cla_INPUT_INTENSITY_INIT;
   vector<float> cla_FR_khz(NCla, 0);
@@ -96,28 +92,27 @@ int main()
   CHECK_CUDA_ERRORS(cudaMemcpy(ratesPCla, CPUratesPCla, NCla * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
   // ------------------------------------------------------------------------------
-  //  重写参数
+  //  parameters initialization 
   // ------------------------------------------------------------------------------
-  //重写gP2E初始值.最后一个参数是g_max乘以1000
   get_rand_g(gP2E, NPoi * NExc, gPE_INIT_MAX_1000);
 #ifdef READ_gPE_FROM_FILE
-  read_gP2E_from_file(gP2E);
-  read_thetaPExc_from_file(thetaPExc);
+/***parameters of 400 excitatory neurons for mnist***/
+  read_gP2E_from_file("./weights/mnist_400/gP2E", gP2E);
+  read_thetaPExc_from_file("./weights/mnist_400/theta", thetaPExc);
 #endif
   // get_rand_g(gE2C, NExc * NCla, gEC_INIT_MAX_1000);
   rewrite_gEI_gIE();
-  //重写seedPPoi
   get_rand(seedPPoi, NPoi, 100000);
 
   // ------------------------------------------------------------------------------
-  //   重写参数后reset
+  //  reset model
   // ------------------------------------------------------------------------------
   copyStateToDevice();
-  initmodel(); //只与稀疏连接有关
+  initmodel(); // need by sparse connection
   copyCurrentSpikesToDevice();
 
 // ------------------------------------------------------------------------------
-//  输出至文件
+//  output data to file
 // ------------------------------------------------------------------------------
 #ifdef FILE_RECODER
   ofstream os_poi("./output/output_poi_V.dat");
@@ -129,7 +124,7 @@ int main()
   ofstream os_visual("./output/output_visual.dat");
 #endif
   // ------------------------------------------------------------------------------
-  //  可视化突触权重
+  //  visualization
   // ------------------------------------------------------------------------------
 #ifdef PLOT_ON
   Drafting PEw{init_PEw, plot_PEw, true};
@@ -140,7 +135,7 @@ int main()
   write_visual_ECw_to_file(ECVisual);
 #endif
   // ------------------------------------------------------------------------------
-  //  收敛曲线（准确率、权重方差）、混淆矩阵、spike_monitor绘图
+  //  performance, confusion matrix and spike monitor
   // ------------------------------------------------------------------------------
   vector<float> performance(UPDATE_TOTAL, 0);
   vector<float> cla_performance(UPDATE_TOTAL, 0);
@@ -173,7 +168,7 @@ int main()
   Drafting thetas{init_theta, plot_theta};
   Drafting response_rates{init_response_rates, plot_response_rates};
 #endif
-#ifdef SPIKES_MONITOR //plot_spike如果声明和使用不在同一个#ifdef下会报错
+#ifdef SPIKES_MONITOR 
   Drafting spikes{init_spikes, plot_spikes};
   Drafting Claspikes{init_Claspikes, plot_Claspikes};
 #endif
@@ -186,10 +181,10 @@ int main()
   bool test_begin;
   while (imageNum < NUM_SAMPLES)
   {
-    //imageNum集中更新
+    // imageNum update
     static bool testDataStartOnce = true;
-    // test_begin = (imageNum <= 600000 && imageNum % NUM_TRAIN_SAMPLES == 0) || (imageNum > 600000 && imageNum % UPDATE_INTERVAL == 0);
-    test_begin = (imageNum <= 11 * NUM_TRAIN_SAMPLES && imageNum % NUM_TRAIN_SAMPLES == 0) || (imageNum > 11 * NUM_TRAIN_SAMPLES && imageNum % UPDATE_INTERVAL == 0);
+    test_begin = imageNum > 0 && imageNum % UPDATE_INTERVAL == 0;
+    // test_begin = (imageNum <= 11 * NUM_TRAIN_SAMPLES && imageNum % NUM_TRAIN_SAMPLES == 0) || (imageNum > 11 * NUM_TRAIN_SAMPLES && imageNum % UPDATE_INTERVAL == 0);
     if (testDataStartOnce || (((testDataEvaluateMode == false && test_begin) || (testDataEvaluateMode == true && imageNum % EVALUATION_INTERVAL == 0)) && (sum_glbSpkCntPExc >= NUM_SPIKE_RESP || input_intensity >= 32)))
     {
       testDataStartOnce = false;
@@ -206,11 +201,11 @@ int main()
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModePCla, testDataEvaluateModePCla, NCla * sizeof(bool), cudaMemcpyHostToDevice));
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModeE2C, testDataEvaluateModeE2C, size_gE2C * sizeof(bool), cudaMemcpyHostToDevice));
 
-      if (!testDataEvaluateMode) //false时表示已经跑完测试集，true时刚开始要跑测试集
+      if (!testDataEvaluateMode) //'false' means run the test set. 'true' means start running test set
       {
         static int current_evaluationNow = 0;
         cout << "\nEvaluating with TestDataSet after trained " << current_evaluationNow * UPDATE_INTERVAL << " samples" << endl;
-        get_new_assignments(assignments, train_result_monitor, labels); //训练集所有样本的spike_record
+        get_new_assignments(assignments, train_result_monitor, labels); 
         get_assignments_distribution(assignments, assignments_dist);
         write_assignments_distribution_to_file(assignments_dist);
 
@@ -241,7 +236,7 @@ int main()
     }
 
     // ------------------------------------------------------------------------------
-    //  输入图像
+    //  input images
     // ------------------------------------------------------------------------------
     if (!testDataEvaluateMode)
       feed_to_networks(images[imageNum % num_train_samples], FR_khz, input_intensity);
@@ -249,13 +244,13 @@ int main()
       feed_to_networks(images_test[imageNum % num_test_samples], FR_khz, input_intensity);
 
     // ------------------------------------------------------------------------------
-    //  分类层
+    //  supervision layer
     // ------------------------------------------------------------------------------
     if (imageNum >= NUM_TRAINING_SL_INI)
     {
 #ifdef TRAIN_LAYER_BY_LAYER
       static bool OnlyOnceInitCla = true;
-      if (OnlyOnceInitCla) //训练到NUM_TRAINING_SL_INI个样本重置Cla层和gE2C的所有变量
+      if (OnlyOnceInitCla) // Reset supervision layer parameters when imageNum = NUM_TRAINING_SL_INI
       {
         cout << "Start to train Cla. in SL:" << NUM_TRAINING_SL_INI << endl;
         OnlyOnceInitCla = false;
@@ -269,12 +264,12 @@ int main()
     //  350ms run
     // ------------------------------------------------------------------------------
     sum_glbSpkCntPExc = 0;
-    spike_record.assign(NExc, 0); //记录发放的神经元 清零
+    spike_record.assign(NExc, 0); // clean spike record
     cla_spike_record.assign(NCla, 0);
 
     CHECK_CUDA_ERRORS(cudaMemcpy(gP2E, d_gP2E, size_gP2E * sizeof(float), cudaMemcpyDeviceToHost));
     normalize_weights(gP2E);
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_gP2E, gP2E, size_gP2E * sizeof(float), cudaMemcpyHostToDevice)); //注意把g写入GPU
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_gP2E, gP2E, size_gP2E * sizeof(float), cudaMemcpyHostToDevice)); 
 
     for (int dt = 0; dt < RUN_TIME / DT; dt++)
     {
@@ -282,8 +277,7 @@ int main()
       CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkCntPExc, d_glbSpkCntPExc, sizeof(unsigned int), cudaMemcpyDeviceToHost));
       CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkCntPCla, d_glbSpkCntPCla, sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
-      //copySpikeNFromDevice();//需要查看变量时记得copyfrom//用SpikeN的话出错：非法cuda错误
-      sum_glbSpkCntPExc += glbSpkCntPExc[0]; //延时的话是应该用[0]嘛？
+      sum_glbSpkCntPExc += glbSpkCntPExc[0]; 
 #ifdef FILE_RECODER
       copyStateFromDevice();
       showGPU();
@@ -292,14 +286,14 @@ int main()
       CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkPExc, d_glbSpkPExc, glbSpkCntPExc[0] * sizeof(unsigned int), cudaMemcpyDeviceToHost));
       CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkPCla, d_glbSpkPCla, glbSpkCntPCla[0] * sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
-      for (int i = 0; i < glbSpkCntPExc[0]; i++) //记录发放的神经元
+      for (int i = 0; i < glbSpkCntPExc[0]; i++) 
         spike_record[glbSpkPExc[i]]++;
-      for (int i = 0; i < glbSpkCntPCla[0]; i++) //记录发放的神经元
+      for (int i = 0; i < glbSpkCntPCla[0]; i++) 
         cla_spike_record[glbSpkPCla[i]]++;
 #ifdef SPIKES_MONITOR
-      for (int i = 0; i < glbSpkCntPExc[0]; i++) //记录发放的神经元
+      for (int i = 0; i < glbSpkCntPExc[0]; i++) 
         spikes_real_time[dt][glbSpkPExc[i]] = 1;
-      for (int i = 0; i < glbSpkCntPCla[0]; i++) //记录发放的神经元
+      for (int i = 0; i < glbSpkCntPCla[0]; i++) 
         cla_spikes_real_time[dt][glbSpkPCla[i]] = 1;
 #endif
     }
@@ -308,14 +302,14 @@ int main()
       spikes.update();
     if (write_spike_to_file(cla_spikes_real_time, NCla, "cla_spike.dat"))
       Claspikes.update();
-    spikes_real_time.assign(int(RUN_TIME / DT), vector<int>(NExc, 0)); //复位发放的神经元
+    spikes_real_time.assign(int(RUN_TIME / DT), vector<int>(NExc, 0)); 
     cla_spikes_real_time.assign(int(RUN_TIME / DT), vector<int>(NCla, 0));
 #endif
     if (sum_glbSpkCntPExc < 60)
       response_rate[sum_glbSpkCntPExc] = response_rate[sum_glbSpkCntPExc] + 1;
 
     // ------------------------------------------------------------------------------
-    //  是否增加输入强度？
+    //  increase the input intensity？
     // ------------------------------------------------------------------------------
     if (sum_glbSpkCntPExc < NUM_SPIKE_RESP && input_intensity < 32)
     {
@@ -323,7 +317,7 @@ int main()
       reset_ratesPCla(cla_FR_khz);
       reset_ratesPPoi(FR_khz);
       for (int dt = 0; dt < REST_TIME / DT; dt++)
-        stepTimeGPU(); //兴奋放电太少，复位状态，重新跑
+        stepTimeGPU(); // Spikes are too little. Reset model and run again.
     }
     // ------------------------------------------------------------------------------
     //  150ms rest
@@ -335,13 +329,13 @@ int main()
         cout << "imageNum without " << NUM_SPIKE_RESP << "-spike-response: " << (imageNum + 1) << endl;
       }
       if (!testDataEvaluateMode)
-        train_result_monitor[imageNum % NUM_TRAIN_SAMPLES].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
+        train_result_monitor[imageNum % NUM_TRAIN_SAMPLES].assign(spike_record.begin(), spike_record.end()); 
       else
       {
-        test_result_monitor[imageNum % NUM_TEST_SAMPLES].assign(spike_record.begin(), spike_record.end()); //这个样本激发神经元存起来
+        test_result_monitor[imageNum % NUM_TEST_SAMPLES].assign(spike_record.begin(), spike_record.end()); 
         cla_result_monitor[imageNum % NUM_TEST_SAMPLES].assign(cla_spike_record.begin(), cla_spike_record.end());
       }
-      if ((imageNum + 1) % 100 == 0 && imageNum > 0) //显示而已
+      if ((imageNum + 1) % 100 == 0 && imageNum > 0) 
       {
         if (!testDataEvaluateMode)
           cout << "Training data - runs done: " << (imageNum + 1) << " -> " << NUM_SAMPLES << "; input_intensity: " << input_intensity << endl;
@@ -356,7 +350,7 @@ int main()
       {
         stepTimeGPU();
       }
-      if ((imageNum + 1) % UPDATE_INTERVAL == 0 && imageNum > 0 && !testDataEvaluateMode) //测试集评估时不跑
+      if ((imageNum + 1) % UPDATE_INTERVAL == 0 && imageNum > 0 && !testDataEvaluateMode) 
       {
         CHECK_CUDA_ERRORS(cudaMemcpy(gP2E, d_gP2E, size_gP2E * sizeof(float), cudaMemcpyDeviceToHost));
         CHECK_CUDA_ERRORS(cudaMemcpy(gE2C, d_gE2C, size_gE2C * sizeof(float), cudaMemcpyDeviceToHost));
@@ -401,12 +395,12 @@ int main()
 #endif
       }
 
-      input_intensity = INPUT_INTENSITY_INIT; //输入强度重置
+      input_intensity = INPUT_INTENSITY_INIT; 
       imageNum += 1;
     }
   }
   //------------------------------------------------------------------------------
-  // save&plot results
+  // save & plot
   //------------------------------------------------------------------------------
   {
     cout << "save results..." << endl;
@@ -452,11 +446,11 @@ int main()
 #endif
 
   // delete[] CPUratesPCla;
-  cudaFreeHost(ratesPCla); //究竟哪个free呢？
+  cudaFreeHost(ratesPCla); 
   CHECK_CUDA_ERRORS(cudaFree(ratesPCla));
 
   // delete[] CPUratesPPoi;
-  cudaFreeHost(ratesPPoi); //究竟哪个free呢？
+  cudaFreeHost(ratesPPoi); 
   CHECK_CUDA_ERRORS(cudaFree(ratesPPoi));
 
   fprintf(stdout, "#training end  ... \n");
@@ -465,7 +459,7 @@ int main()
   // exitGeNN();
 
   //  timer
-  time_t t_end = time(NULL); //返回当前时间到1970年1月1日零点时间的差.秒
+  time_t t_end = time(NULL); 
   cout << "t_start:" << t_start << endl;
   cout << "t_end:" << t_end << endl;
   cout << "time to use:" << t_end - t_start << "s = " << (t_end - t_start) / 3600.0 << "h" << endl;
@@ -493,55 +487,31 @@ void convertRateToRandomNumberThreshold(vector<float> rateKHz_pattern, uint64_t 
     pattern[i] = (uint64_t)(rateKHz_pattern[i] * fac);
   }
 }
-void get_rand_g(float *p, long int n, int g_max) //函数功能为产生n个N_rand内的随机数，存储于数组*ratesPop1中。
+void get_rand_g(float *p, long int n, int g_max) 
 {
-  long int i;                  //大小根本不够大
-  srand((unsigned)time(NULL)); //设置随机数种子，使每次获取的随机序列不同。
+  long int i;                  
+  srand((unsigned)time(NULL)); 
   for (i = 0; i < n; i++)
-    p[i] = rand() % g_max / 1000.0; //生成N_rand间的随机数。
-                                    //for(i = 0; i < n; i ++)
-                                    //MYRAND(myrand,p[i]);
+    p[i] = rand() % g_max / 1000.0; 
 }
 void get_rand(uint64_t *p, long int n, int max)
 {
   long int i;
   srand((unsigned)time(NULL));
   for (i = 0; i < n; i++)
-    p[i] = (uint64_t)(rand() % (max)); //返回的是秒数，不能在短时间内多次调用该函数来获得随机数列，应该一次性获得所有随机数列
+    p[i] = (uint64_t)(rand() % (max)); 
 }
-void get_inputdata(string datapath, vector<vector<float>> &images, vector<float> &labels, vector<vector<float>> &images_test, vector<float> &labels_test)
+void get_inputdata(string path, vector<vector<float>> &images, vector<float> &labels, vector<vector<float>> &images_test, vector<float> &labels_test)
 {
-  if (DATA == "cifar10/")
-  {
-#ifdef GRAYSCALE
-    cout << "**********cifar10**********" << endl;
-    if (DATASET_TRAIN)
-    {
-      read_cifar10_train(path, GRAYSCALE, images, labels);
-      read_cifar10_test(path, GRAYSCALE, images_test, labels_test);
-    }
-    else
-    {
-      read_cifar10_test(path, GRAYSCALE, images, labels);
-    }
-#endif
-  }
-  else if (DATA == "caltech/")
-  {
-    cout << "**********caltech101-resized-dog**********" << endl;
-    // read_caltech("/home/hyz/Downloads/dataset/caltech101-resized-dog/", images, labels, images_test, labels_test);
-  }
-  else if (DATA == "fashion-mnist/")
+  if (DATA == "fashion-mnist/")
   {
     cout << "**********fashion-mnist**********" << endl;
     if (DATASET_TRAIN)
     {
       read_mnist_images(path + "train-images-idx3-ubyte_normalized_to30", images);
-      // read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
       read_mnist_label(path + "train-labels-idx1-ubyte", labels);
 
       read_mnist_images(path + "t10k-images-idx3-ubyte_normalized_to30", images_test);
-      // read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
       read_mnist_label(path + "t10k-labels-idx1-ubyte", labels_test);
     }
     else
@@ -556,11 +526,9 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
     if (DATASET_TRAIN)
     {
       read_mnist_images(path + "train-images-idx3-ubyte", images);
-      // read_mnist_images(path + "train-images-idx3-ubyte-DoG-ON", images);
       read_mnist_label(path + "train-labels-idx1-ubyte", labels);
 
       read_mnist_images(path + "t10k-images-idx3-ubyte", images_test);
-      // read_mnist_images(path + "t10k-images-idx3-ubyte-DoG-ON", images_test);
       read_mnist_label(path + "t10k-labels-idx1-ubyte", labels_test);
     }
     else
@@ -573,26 +541,25 @@ void get_inputdata(string datapath, vector<vector<float>> &images, vector<float>
 
 void rewrite_gEI_gIE()
 {
-  //先编译model文件才有gE2I变量……
-  float *g_EI_array = new float[preN_EI * postN_EI]; //dense型存储（对应到函数实现上）
-  float *g_IE_array = new float[preN_IE * postN_IE]; //dense型存储（对应到函数实现上）
+  float *g_EI_array = new float[preN_EI * postN_EI]; 
+  float *g_IE_array = new float[preN_IE * postN_IE]; 
   //E——>I
-  for (int i_dense = 0; i_dense < preN_EI; i_dense++)    //行pre
-    for (int j_dense = 0; j_dense < postN_EI; j_dense++) //列post
+  for (int i_dense = 0; i_dense < preN_EI; i_dense++)
+    for (int j_dense = 0; j_dense < postN_EI; j_dense++)
     {
       if (i_dense == j_dense)
-        g_EI_array[i_dense * postN_EI + j_dense] = g_EI; //大于1e-19就能分开
+        g_EI_array[i_dense * postN_EI + j_dense] = g_EI;
       else
-        g_EI_array[i_dense * postN_EI + j_dense] = 0.0; //大于1e-19就能分开
+        g_EI_array[i_dense * postN_EI + j_dense] = 0.0; 
     }
   //I——>E
-  for (int i_dense = 0; i_dense < preN_IE; i_dense++)    //行pre
-    for (int j_dense = 0; j_dense < postN_IE; j_dense++) //列post
+  for (int i_dense = 0; i_dense < preN_IE; i_dense++) 
+    for (int j_dense = 0; j_dense < postN_IE; j_dense++)
     {
       if (i_dense == j_dense)
-        g_IE_array[i_dense * postN_IE + j_dense] = 0.0; //大于1e-19就能分开
+        g_IE_array[i_dense * postN_IE + j_dense] = 0.0; 
       else
-        g_IE_array[i_dense * postN_IE + j_dense] = g_IE; //大于1e-19就能分开
+        g_IE_array[i_dense * postN_IE + j_dense] = g_IE;
     }
   setSparseConnectivityFromDense(gE2I, preN_EI, postN_EI, g_EI_array, &CE2I);
   setSparseConnectivityFromDense(gI2E, preN_IE, postN_IE, g_IE_array, &CI2E);
@@ -630,31 +597,31 @@ void feed_to_networks(vector<float> image, vector<float> &FR_khz, float input_in
     one_image.push_back(image[i]);
   for (int i = 0; i < NPoi; i++)
     FR_khz[i] = (float)one_image[i] / 8.0 / 1000.0 * input_intensity;
-  convertRateToRandomNumberThreshold(FR_khz, CPUratesPPoi, NPoi);                                          //单位是khz,为与DT配合
-  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPPoi, CPUratesPPoi, NPoi * sizeof(uint64_t), cudaMemcpyHostToDevice)); //之后记得尝试一次多准备些数据
+  convertRateToRandomNumberThreshold(FR_khz, CPUratesPPoi, NPoi); 
+  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPPoi, CPUratesPPoi, NPoi * sizeof(uint64_t), cudaMemcpyHostToDevice)); 
 }
 void Cla_feed_to_networks(int label, vector<float> &cla_FR_khz, float cla_input_intensity)
 {
   static uint64_t *CPUratesPCla = new uint64_t[NCla];
   cla_FR_khz.assign(NCla, 0);
   cla_FR_khz[label] = 1.0 * cla_input_intensity;
-  convertRateToRandomNumberThreshold(cla_FR_khz, CPUratesPCla, NCla);                                      //单位是khz
-  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPCla, CPUratesPCla, NCla * sizeof(uint64_t), cudaMemcpyHostToDevice)); //之后记得尝试一次多准备些数据
+  convertRateToRandomNumberThreshold(cla_FR_khz, CPUratesPCla, NCla);                                      
+  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPCla, CPUratesPCla, NCla * sizeof(uint64_t), cudaMemcpyHostToDevice)); 
   CHECK_CUDA_ERRORS(cudaMemcpy(gE2C, d_gE2C, size_gE2C * sizeof(float), cudaMemcpyDeviceToHost));
-  cla_normalize_weights(gE2C);                                                                    //能不能在gpu里算这个？
-  CHECK_CUDA_ERRORS(cudaMemcpy(d_gE2C, gE2C, size_gE2C * sizeof(float), cudaMemcpyHostToDevice)); //注意把g写入GPU
+  cla_normalize_weights(gE2C);                                                                    
+  CHECK_CUDA_ERRORS(cudaMemcpy(d_gE2C, gE2C, size_gE2C * sizeof(float), cudaMemcpyHostToDevice)); 
 }
 void reset_ratesPPoi(vector<float> &FR_khz)
 {
   static uint64_t *CPUratesPPoi = new uint64_t[NPoi];
   FR_khz.assign(NPoi, 0);
-  convertRateToRandomNumberThreshold(FR_khz, CPUratesPPoi, NPoi);                                          //单位是khz
-  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPPoi, CPUratesPPoi, NPoi * sizeof(uint64_t), cudaMemcpyHostToDevice)); //之后记得尝试一次多准备些数据
+  convertRateToRandomNumberThreshold(FR_khz, CPUratesPPoi, NPoi);
+  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPPoi, CPUratesPPoi, NPoi * sizeof(uint64_t), cudaMemcpyHostToDevice)); 
 }
 void reset_ratesPCla(vector<float> &cla_FR_khz)
 {
   static uint64_t *CPUratesPCla = new uint64_t[NCla];
   cla_FR_khz.assign(NCla, 0);
-  convertRateToRandomNumberThreshold(cla_FR_khz, CPUratesPCla, NCla);                                      //单位是khz
-  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPCla, CPUratesPCla, NCla * sizeof(uint64_t), cudaMemcpyHostToDevice)); //之后记得尝试一次多准备些数据
+  convertRateToRandomNumberThreshold(cla_FR_khz, CPUratesPCla, NCla);
+  CHECK_CUDA_ERRORS(cudaMemcpy(ratesPCla, CPUratesPCla, NCla * sizeof(uint64_t), cudaMemcpyHostToDevice)); 
 }

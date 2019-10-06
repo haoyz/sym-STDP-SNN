@@ -9,18 +9,18 @@ using namespace std;
 
 class Drafting
 {
-public: //怎么指定本类的名字？是否有隐藏指针.似乎真没有
+public: 
   vector<std::string> init;
   vector<std::string> plot;
   GNUplot gnuplot;
   bool replot;
-  int replot_count = 0; //仍然是在构造函数时才初始化，有时发现数值已经是0是因为分配内存的那地方原本就是0
-  explicit Drafting(    //数组怎么接受引用传参？这里不修改数组，因此指针就够用了
+  int replot_count = 0; 
+  explicit Drafting(    
       vector<std::string> &init,
       vector<std::string> &plot,
       bool replot = false)
       : init{init}, plot{plot}, replot{replot}
-  { //构造函数里做init plot的功能合适吗？
+  { 
     gnuplot(this->init);
   }
   virtual ~Drafting();

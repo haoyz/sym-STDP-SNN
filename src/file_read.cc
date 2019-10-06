@@ -12,13 +12,13 @@ float str2float(string s)
     ss >> num;
     return num;
 }
-void read_gP2E_from_file(float *tmp_gP2E)
+void read_gP2E_from_file(string path, float *tmp_gP2E)
 {
     string str_gP2E;
-    ifstream gP2E_file("./weights/gPE");
+    ifstream gP2E_file(path);
     if (gP2E_file)
     {
-        cout << "Read from ./weights/gPE..." << endl;
+        cout << "Read from " << path << "..." << endl;
         for (int i = 0; i < NPoi; i++)
         {
             for (int j = 0; j < NExc; j++)
@@ -31,16 +31,16 @@ void read_gP2E_from_file(float *tmp_gP2E)
     }
     else
     {
-        cout << "open ./weights/gPE error!" << endl;
+        cout << "open " << path << " error!" << endl;
     }
 }
-void read_thetaPExc_from_file(float *tmp_thetaPExc)
+void read_thetaPExc_from_file(string path, float *tmp_thetaPExc)
 {
     string str_theta;
-    ifstream theta_file("./weights/theta");
+    ifstream theta_file(path);
     if (theta_file)
     {
-        cout << "Read from ./weights/theta..." << endl;
+        cout << "Read from " << path << "..." << endl;
         for (int i = 0; i < NExc; i++)
         {
             theta_file >> str_theta;
@@ -50,16 +50,16 @@ void read_thetaPExc_from_file(float *tmp_thetaPExc)
     }
     else
     {
-        cout << "open ./weights/theta error!" << endl;
+        cout << "open " << path << " error!" << endl;
     }
 }
-void read_gE2C_from_file(float *tmp_gE2C)
+void read_gE2C_from_file(string path, float *tmp_gE2C)
 {
     string str_gE2C;
-    ifstream gE2C_file("./weights/gEC");
+    ifstream gE2C_file(path);
     if (gE2C_file)
     {
-        cout << "Read from ./weights/gEC..." << endl;
+        cout << "Read from " << path << "..." << endl;
         for (int i = 0; i < NExc; i++)
         {
             for (int j = 0; j < NCla; j++)
@@ -72,6 +72,6 @@ void read_gE2C_from_file(float *tmp_gE2C)
     }
     else
     {
-        cout << "open ./weights/gEC error!" << endl;
+        cout << "open " << path << " error!" << endl;
     }
 }
