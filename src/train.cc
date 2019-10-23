@@ -95,8 +95,8 @@ int main()
   //  parameters initialization 
   // ------------------------------------------------------------------------------
   get_rand_g(gP2E, NPoi * NExc, gPE_INIT_MAX_1000);
-#ifdef READ_gPE_FROM_FILE
-/***parameters of 400 excitatory neurons for mnist***/
+#ifdef FIXED_HIDDEN_LAYER
+  /***parameters of 400 excitatory neurons for mnist***/
   read_gP2E_from_file("./weights/mnist_400/gP2E", gP2E);
   read_thetaPExc_from_file("./weights/mnist_400/theta", thetaPExc);
 #endif
@@ -111,9 +111,9 @@ int main()
   initmodel(); // need by sparse connection
   copyCurrentSpikesToDevice();
 
-// ------------------------------------------------------------------------------
-//  output data to file
-// ------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------
+  //  output data to file
+  // ------------------------------------------------------------------------------
 #ifdef FILE_RECODER
   ofstream os_poi("./output/output_poi_V.dat");
   ofstream os_exc("./output/output_exc_V.dat");
@@ -189,7 +189,7 @@ int main()
     {
       testDataStartOnce = false;
       testDataEvaluateMode = !testDataEvaluateMode; //true-false-true-false...
-#ifndef READ_gPE_FROM_FILE
+#ifndef FIXED_HIDDEN_LAYER
       fill_n(testDataEvaluateModePExc, NExc, testDataEvaluateMode);
       fill_n(testDataEvaluateModeP2E, size_gP2E, testDataEvaluateMode);
       CHECK_CUDA_ERRORS(cudaMemcpy(d_testDataEvaluateModePExc, testDataEvaluateModePExc, NExc * sizeof(bool), cudaMemcpyHostToDevice));
@@ -248,7 +248,6 @@ int main()
     // ------------------------------------------------------------------------------
     if (imageNum >= NUM_TRAINING_SL_INI)
     {
-#ifdef TRAIN_LAYER_BY_LAYER
       static bool OnlyOnceInitCla = true;
       if (OnlyOnceInitCla) // Reset supervision layer parameters when imageNum = NUM_TRAINING_SL_INI
       {
@@ -256,7 +255,6 @@ int main()
         OnlyOnceInitCla = false;
         reset_Cla_para();
       }
-#endif
       if (!testDataEvaluateMode)
         Cla_feed_to_networks(labels[imageNum % num_train_samples], cla_FR_khz, cla_input_intensity);
     }
@@ -309,18 +307,23 @@ int main()
       response_rate[sum_glbSpkCntPExc] = response_rate[sum_glbSpkCntPExc] + 1;
 
     // ------------------------------------------------------------------------------
-    //  increase the input intensity？
+    //  Each sample is presented to a network for 350ms, then we reset the network for 150ms. 
+    //  When the excitatory neurons in the hidden layer fire less than five spikes within 350 ms, 
+    //  in addition of reset, we also increase the input intensity by 32Hz and do not update sample ID, 
+    //  which means this sample will be presented to network again in higher rates for another 350ms, 
+    //  until the input rates too high, i.e., "input_intensity < 32".
     // ------------------------------------------------------------------------------
     if (sum_glbSpkCntPExc < NUM_SPIKE_RESP && input_intensity < 32)
     {
-      input_intensity += 1;
+      input_intensity += 1;// increase the input intensity by 32Hz.
       reset_ratesPCla(cla_FR_khz);
-      reset_ratesPPoi(FR_khz);
-      for (int dt = 0; dt < REST_TIME / DT; dt++)
-        stepTimeGPU(); // Spikes are too little. Reset model and run again.
+      reset_ratesPPoi(FR_khz);// reset the FR_khz to 0, i.e., no spikes input
+      for (int dt = 0; dt < REST_TIME / DT; dt++)// reset the networks for 150ms
+        stepTimeGPU();
     }
     // ------------------------------------------------------------------------------
     //  150ms rest
+    //  Reset input_intensity to INPUT_INTENSITY_INIT and update sample ID
     // ------------------------------------------------------------------------------
     else
     {
@@ -344,12 +347,12 @@ int main()
       }
 
       reset_ratesPCla(cla_FR_khz);
-      reset_ratesPPoi(FR_khz);
-
-      for (int dt = 0; dt < REST_TIME / DT; dt++) //rest
+      reset_ratesPPoi(FR_khz);// reset the FR_khz to 0, i.e., no spikes input
+      for (int dt = 0; dt < REST_TIME / DT; dt++)// reset the networks for 150ms
       {
         stepTimeGPU();
       }
+
       if ((imageNum + 1) % UPDATE_INTERVAL == 0 && imageNum > 0 && !testDataEvaluateMode) 
       {
         CHECK_CUDA_ERRORS(cudaMemcpy(gP2E, d_gP2E, size_gP2E * sizeof(float), cudaMemcpyDeviceToHost));
@@ -395,8 +398,8 @@ int main()
 #endif
       }
 
-      input_intensity = INPUT_INTENSITY_INIT; 
-      imageNum += 1;
+      input_intensity = INPUT_INTENSITY_INIT; // Reset input_intensity to INPUT_INTENSITY_INIT
+      imageNum += 1;// update sample ID
     }
   }
   //------------------------------------------------------------------------------

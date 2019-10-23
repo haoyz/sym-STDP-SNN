@@ -5,8 +5,7 @@
 #define ID_DEVICE 0 //-1 // choose GPU. '-1' represents 'AUTO_CHOOSE'
 // #define FILE_RECODER
 // #define SPIKES_MONITOR
-#define TRAIN_LAYER_BY_LAYER
-#define READ_gPE_FROM_FILE
+#define FIXED_HIDDEN_LAYER
 // // #define SVM_TRAIN
 #define PLOT_ON
 

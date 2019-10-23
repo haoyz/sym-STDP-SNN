@@ -25,7 +25,7 @@ Corresponding checkpoints of different size models are available at https://driv
 ## Reproducibility
 We provide the pretrained checkpoints of the sym-stdp model on the MNIST and Fashion-MNIST dataset to help you to reproduce our reported experimental results. The detailed reproduction steps are as follows:
 
-- mkdir output weights data
+- mkdir output
 - Please download the dataset and checkpoints first by clicking on the link provided above, then put them in the folder *./*.
 - Predict: ```./run.sh```
 

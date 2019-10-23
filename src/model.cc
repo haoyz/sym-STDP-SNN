@@ -170,7 +170,7 @@ void modelDefinition(NNmodel &model)
     model.setName("model");
     
     model.addNeuronPopulation("PPoi", NPoi, Poi, p_Poi, ini_Poi);
-#ifndef READ_gPE_FROM_FILE
+#ifndef FIXED_HIDDEN_LAYER
     model.addNeuronPopulation("PExc", NExc, LIF_Exc, p_Exc, ini_Exc);
 #else
     model.addNeuronPopulation("PExc", NExc, LIF_Exc, p_Exc_fixed, ini_Exc);
@@ -179,7 +179,7 @@ void modelDefinition(NNmodel &model)
     model.addNeuronPopulation("PCla", NCla, LIF_Cla, p_Cla, ini_Cla);
 
 #ifndef test_mode
-#ifndef READ_gPE_FROM_FILE
+#ifndef FIXED_HIDDEN_LAYER
     model.addSynapsePopulation("P2E", DA_STDP, DENSE, INDIVIDUALG, NO_DELAY, EXPDECAY, "PPoi", "PExc", ini_DA_STDP_PE, p_DA_STDP_PE, postSynV, postExpP2E);
 #else
     model.addSynapsePopulation("P2E", NSYNAPSE, DENSE, INDIVIDUALG, NO_DELAY, EXPDECAY, "PPoi", "PExc", ini_noSTDP, p_noSTDP_PE, postSynV, postExpP2E); 
