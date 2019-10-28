@@ -50,6 +50,12 @@
 #define Exc_Refrac 2
 #define Exc_test_mode TEST_MODE_NEURON
 
+//------------------------------------------------------------------------------
+// The Exc_theta_plus in the code corresponds to the α * dt / τ_θ in the paper Eq(5). 
+// For network sizes N_hidden = 100, 400, 1600, 6400, and 10 000, 
+// α * dt / τ_θ = 0.07, 0.07, 0.07, 0.05 and 0.05.
+//------------------------------------------------------------------------------
+
 /***parameters of 10000 excitatory neurons for mnist***/
 /***parameters of 6400 excitatory neurons for mnist***/
 // #define Exc_Ttheta 1e7 * 2
