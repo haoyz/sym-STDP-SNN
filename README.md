@@ -57,7 +57,7 @@ Uncomment '#define TEST_MODE' in the global.h.
 *******************************************************************
 
 ## Weight Evolution
-![gif](./assets/weight evolution.gif)
+![gif](./assets/weight_evolution.gif)
 
 *******************************************************************
 
