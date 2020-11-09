@@ -56,6 +56,11 @@ Uncomment '#define TEST_MODE' in the global.h.
 
 *******************************************************************
 
+## Weight Evolution
+![gif](./assets/weight evolution.gif)
+
+*******************************************************************
+
 ## Citation
 If you use the above code for your research, please cite the paper:
 
